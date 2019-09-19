@@ -28,6 +28,7 @@
 "Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_ll_fsmc.o"
 "Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_ll_sdmmc.o"
 "Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_ll_usb.o"
+"Src/UMD-App/UMD.o"
 "Src/adc.o"
 "Src/crc.o"
 "Src/fsmc.o"
