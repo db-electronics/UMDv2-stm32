@@ -22,11 +22,12 @@
 #include "main.h"
 #include "adc.h"
 #include "crc.h"
+#include "fatfs.h"
 #include "i2c.h"
 #include "sdio.h"
 #include "spi.h"
 #include "usart.h"
-#include "usb_otg.h"
+#include "usb_device.h"
 #include "gpio.h"
 #include "fsmc.h"
 
@@ -103,7 +104,8 @@ int main(void)
   MX_SDIO_SD_Init();
   MX_SPI2_Init();
   MX_USART3_UART_Init();
-  MX_USB_OTG_FS_PCD_Init();
+  MX_FATFS_Init();
+  MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */

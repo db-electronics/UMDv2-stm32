@@ -8,7 +8,16 @@
 #ifndef UMD_H_
 #define UMD_H_
 
-void UMD_app(void);
-void UMD_shift_LEDs(unsigned int mode);
+class UMD{
+
+public:
+	UMD();
+
+	void run(void);
+	void shift_LEDs(unsigned int);
+
+private:
+
+};
 
 #endif /* UMD_H_ */
