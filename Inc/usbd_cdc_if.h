@@ -62,7 +62,17 @@
   */
 
 /* USER CODE BEGIN EXPORTED_TYPES */
-
+#define USB_BUFFER_SIZE		2048
+struct __usbbuf{
+	union __databuff{
+		uint8_t		byte[USB_BUFFER_SIZE];     ///< byte access within dataBuffer
+		uint16_t    word[USB_BUFFER_SIZE/2];   ///< word access within dataBuffer
+	} data;
+	uint16_t	tail;
+	uint16_t	head;
+	uint8_t		status;
+	uint32_t	packets;
+} usbbuf;
 /* USER CODE END EXPORTED_TYPES */
 
 /**
