@@ -22792,7 +22792,7 @@ UMD::UMD(){
  800875a:	6078      	str	r0, [r7, #4]
 
 	// say hello
-	string str = "UMDv2\n";
+	string str = "UMDv2\n\r";
  800875c:	f107 0324 	add.w	r3, r7, #36	; 0x24
  8008760:	4618      	mov	r0, r3
  8008762:	f002 f878 	bl	800a856 <_ZNSaIcEC1Ev>
@@ -22817,7 +22817,7 @@ UMD::UMD(){
  800879c:	f107 0328 	add.w	r3, r7, #40	; 0x28
  80087a0:	4618      	mov	r0, r3
  80087a2:	f002 f894 	bl	800a8ce <_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEED1Ev>
-	string str = "UMDv2\n";
+	string str = "UMDv2\n\r";
  80087a6:	f107 030c 	add.w	r3, r7, #12
  80087aa:	4618      	mov	r0, r3
  80087ac:	f002 f88f 	bl	800a8ce <_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEED1Ev>
@@ -22841,7 +22841,7 @@ void UMD::init(void){
 
 	int i;
 
-	string str = "UMDv2 initializing...\n";
+	string str = "UMDv2 initializing...\n\r";
  80087c8:	f107 0320 	add.w	r3, r7, #32
  80087cc:	4618      	mov	r0, r3
  80087ce:	f002 f842 	bl	800a856 <_ZNSaIcEC1Ev>
@@ -22901,7 +22901,7 @@ void UMD::init(void){
  800884a:	3301      	adds	r3, #1
  800884c:	63fb      	str	r3, [r7, #60]	; 0x3c
  800884e:	e7e2      	b.n	8008816 <_ZN3UMD4initEv+0x56>
-	string str = "UMDv2 initializing...\n";
+	string str = "UMDv2 initializing...\n\r";
  8008850:	f107 0308 	add.w	r3, r7, #8
  8008854:	4618      	mov	r0, r3
  8008856:	f002 f83a 	bl	800a8ce <_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEED1Ev>
@@ -22922,7 +22922,7 @@ void UMD::run(void){
  800886c:	af00      	add	r7, sp, #0
  800886e:	6078      	str	r0, [r7, #4]
 
-	string str = "UMDv2 running...\n";
+	string str = "UMDv2 running...\n\r";
  8008870:	f107 0324 	add.w	r3, r7, #36	; 0x24
  8008874:	4618      	mov	r0, r3
  8008876:	f001 ffee 	bl	800a856 <_ZNSaIcEC1Ev>

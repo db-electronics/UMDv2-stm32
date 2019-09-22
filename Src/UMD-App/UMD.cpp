@@ -26,7 +26,7 @@ using namespace std;
 UMD::UMD(){
 
 	// say hello
-	string str = "UMDv2\n";
+	string str = "UMDv2\n\r";
 	sendUSB(str);
 
 }
@@ -35,7 +35,7 @@ void UMD::init(void){
 
 	int i;
 
-	string str = "UMDv2 initializing...\n";
+	string str = "UMDv2 initializing...\n\r";
 	sendUSB(str);
 
 	// flash to show we're alive
@@ -49,7 +49,7 @@ void UMD::init(void){
 
 void UMD::run(void){
 
-	string str = "UMDv2 running...\n";
+	string str = "UMDv2 running...\n\r";
 	init();
 
 	while(1){
