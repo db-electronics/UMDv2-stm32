@@ -1,5 +1,5 @@
 /*******************************************************************//**
- *  \file UMD.h
+ *  \file Cartridge.h
  *  \author René Richard
  *  \brief This program provides a serial interface over USB to the
  *         Universal Mega Dumper.
@@ -20,43 +20,27 @@
  *   along with Universal Mega Dumper.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef UMD_H_
-#define UMD_H_
+#ifndef CARTRIDGES_CARTRIDGE_H_
+#define CARTRIDGES_CARTRIDGE_H_
 
 #include <cstdint>
-#include <string>
-#include "Cartridges/Cartridge.h"
 
-#define LED_SHIFT_DIR_LEFT	0
-#define LED_SHIFT_DIR_RIGHT 1
-
-using namespace std;
-
-class UMD{
-
+class Cartridge {
 public:
-	UMD();
+	Cartridge();
+	virtual ~Cartridge();
 
-	// run is the only method visible from main.cpp, it never returns
-	void run(void);
+	//FSMC address offsets
+	#define FSMC_CE0_8BF_ADDR				0x60000000U
+	#define FSMC_CE1_8BS_ADDR				0x64000000U
+	#define FSMC_CE2_16BF_ADDR				0x68000000U
+	#define FSMC_CE3_16BS_ADDR				0x6C000000U
 
-private:
-
-	// pointer to cartridge objects
-	Cartridge *cart;
-
-	// initializers
-	void init(void);
-	void setCartridgeType(uint8_t mode);
-
-	// USB transmit methods
-	void sendUSB(string);
-	void sendUSB(uint8_t* buf, uint16_t size);
-
-	// LED methods
-	void setLEDs(uint8_t LEDs);
-	void shiftLEDs(uint8_t dir);
+	// cartridge methods
+	static void init();
+	uint8_t readByte(uint32_t address);
 
 };
 
-#endif /* UMD_H_ */
+
+#endif /* CARTRIDGES_CARTRIDGE_H_ */

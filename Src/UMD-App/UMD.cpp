@@ -1,8 +1,23 @@
-/*
- * UMD.c
+/*******************************************************************//**
+ *  \file UMD.cpp
+ *  \author René Richard
+ *  \brief This program provides a serial interface over USB to the
+ *         Universal Mega Dumper.
  *
- *  Created on: Sep. 19, 2019
- *      Author: rene
+ *  \copyright This file is part of Universal Mega Dumper.
+ *
+ *   Universal Mega Dumper is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   Universal Mega Dumper is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with Universal Mega Dumper.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /* Includes ------------------------------------------------------------------*/
@@ -19,6 +34,8 @@
 
 #include "usbd_cdc_if.h"
 #include "UMD.h"
+#include "cartfactory.h"
+#include "Cartridges/Cartridge.h"
 #include <cstdint>
 #include <string>
 using namespace std;
@@ -31,6 +48,9 @@ UMD::UMD(){
 
 }
 
+/*******************************************************************//**
+ *
+ **********************************************************************/
 void UMD::init(void){
 
 	int i;
@@ -38,79 +58,88 @@ void UMD::init(void){
 	string str = "UMDv2 initializing...\n\r";
 	sendUSB(str);
 
+
 	// flash to show we're alive
 	for(i=0;i<4;i++){
-		setLEDs(0,0,0,0);
+		setLEDs(0x05);
 		HAL_Delay(250);
-		setLEDs(1,1,1,1);
+		setLEDs(0x0A);
 		HAL_Delay(250);
 	}
+	setLEDs(0x00);
 }
 
+/*******************************************************************//**
+ *
+ **********************************************************************/
 void UMD::run(void){
 
 	string str = "UMDv2 running...\n\r";
 	init();
 
+	// We need a cart factory but only one, and this function is the only one that needs to update
+	// the cart ptr.  So we can use the static keyword to keep this across calls to the function
+	setCartridgeType(0);
+
+	cart->init();
+	//uint8_t byte = cart->readByte(0x12345678);
+	//byte++;
+
 	while(1){
 		HAL_Delay(500);
-		shiftLEDs(0);
+		shiftLEDs(LED_SHIFT_DIR_LEFT);
 		HAL_Delay(500);
-		shiftLEDs(0);
+		shiftLEDs(LED_SHIFT_DIR_LEFT);
 		sendUSB(str);
 	}
 }
 
+/*******************************************************************//**
+ *
+ **********************************************************************/
+void UMD::setCartridgeType(uint8_t mode){
+	static CartFactory cf;
+	cart = cf.getCart(static_cast<CartFactory::Mode>(mode));
+}
+
+/*******************************************************************//**
+ *
+ **********************************************************************/
 void UMD::sendUSB(string str){
 	CDC_Transmit_FS( (uint8_t*)str.c_str(), str.length() );
 }
 
+/*******************************************************************//**
+ *
+ **********************************************************************/
 void UMD::sendUSB(uint8_t* buf, uint16_t size){
 	CDC_Transmit_FS( buf, size );
 }
 
+/*******************************************************************//**
+ *
+ **********************************************************************/
+void UMD::setLEDs(uint8_t LEDs){
 
-uint8_t UMD::readByte(uint32_t address){
-	uint8_t value;
-	value = *(volatile uint8_t *)(FSMC_CE1_8BS_ADDR + address);
-	return value;
+	(LEDs & 0x01) ? HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, GPIO_PIN_SET) : HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, GPIO_PIN_RESET);
+	(LEDs & 0x02) ? HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET) : HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
+	(LEDs & 0x04) ? HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET) : HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
+	(LEDs & 0x08) ? HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_SET) : HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_RESET);
 }
 
-void UMD::setLEDs(uint8_t LED0, uint8_t LED1, uint8_t LED2, uint8_t LED3){
-
-	(LED0 == 1) ? HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, GPIO_PIN_SET) : HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, GPIO_PIN_RESET);
-	(LED1 == 1) ? HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET) : HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
-	(LED2 == 1) ? HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET) : HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
-	(LED3 == 1) ? HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_SET) : HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_RESET);
-}
-
+/*******************************************************************//**
+ *
+ **********************************************************************/
 void UMD::shiftLEDs(uint8_t dir){
 
-	static uint8_t state = 0;
+	static uint8_t state = 1;
 
-	//HAL_GPIO_ReadPin(LED0_GPIO_Port, LED0_Pin)
-	switch(state){
-	case 0:
-		setLEDs(1,0,0,0);
-		break;
-	case 1:
-		setLEDs(0,1,0,0);
-		break;
-	case 2:
-		setLEDs(0,0,1,0);
-		break;
-	case 3:
-		setLEDs(0,0,0,1);
-		break;
-	default:
-		break;
-	}
-
-	if(dir==0){
-		state++;
+	setLEDs(state);
+	if(dir == LED_SHIFT_DIR_LEFT){
+		state <<= 1;
+		if( state > 8 ) state = 1;
 	}else{
-		state--;
+		state >>= 1;
+		if( state > 8 ) state = 8;
 	}
-	state &= 0x03;
-
 }

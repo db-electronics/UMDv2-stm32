@@ -1,8 +1,8 @@
 /*******************************************************************//**
- *  \file UMD.h
- *  \author René Richard
+ *  \file generic.h
+ *  \author btrim
  *  \brief This program provides a serial interface over USB to the
- *         Universal Mega Dumper.
+ *         Universal Mega Dumper. 
  *
  *  \copyright This file is part of Universal Mega Dumper.
  *
@@ -20,43 +20,35 @@
  *   along with Universal Mega Dumper.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef UMD_H_
-#define UMD_H_
+#ifndef cartfactory_h
+#define cartfactory_h
 
-#include <cstdint>
-#include <string>
+#include <stdint.h>
 #include "Cartridges/Cartridge.h"
 
-#define LED_SHIFT_DIR_LEFT	0
-#define LED_SHIFT_DIR_RIGHT 1
 
-using namespace std;
 
-class UMD{
-
+class CartFactory 
+{
 public:
-	UMD();
+    CartFactory();
+#define CARTS_LEN  2
+    enum Mode : uint8_t { UNDEFINED, GENESIS };
 
-	// run is the only method visible from main.cpp, it never returns
-	void run(void);
+    Cartridge* getCart(Mode mode);
+    Mode getMaxCartMode();
+
+    ~CartFactory();
 
 private:
+    CartFactory(const CartFactory&) = delete;
 
-	// pointer to cartridge objects
-	Cartridge *cart;
+    // Array of carts indexed by Mode
+    Cartridge* carts[CARTS_LEN+1];
 
-	// initializers
-	void init(void);
-	void setCartridgeType(uint8_t mode);
-
-	// USB transmit methods
-	void sendUSB(string);
-	void sendUSB(uint8_t* buf, uint16_t size);
-
-	// LED methods
-	void setLEDs(uint8_t LEDs);
-	void shiftLEDs(uint8_t dir);
-
+    Cartridge* noop;
 };
 
-#endif /* UMD_H_ */
+#endif
+
+
