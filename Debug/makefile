@@ -53,6 +53,9 @@ default.size.stdout \
 OBJDUMP_LIST += \
 UMDv2-stm32.list \
 
+OBJCOPY_BIN += \
+UMDv2-stm32.bin \
+
 
 # All Target
 all: UMDv2-stm32.elf secondary-outputs
@@ -73,12 +76,17 @@ UMDv2-stm32.list: $(EXECUTABLES)
 	@echo 'Finished building: $@'
 	@echo ' '
 
+UMDv2-stm32.bin: $(EXECUTABLES)
+	arm-none-eabi-objcopy  -O binary $(EXECUTABLES) "UMDv2-stm32.bin"
+	@echo 'Finished building: $@'
+	@echo ' '
+
 # Other Targets
 clean:
 	-$(RM) *
 	-@echo ' '
 
-secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)
+secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST) $(OBJCOPY_BIN)
 
 .PHONY: all clean dependents
 .SECONDARY:
