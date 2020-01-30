@@ -62,6 +62,9 @@
   */
 
 /* USER CODE BEGIN EXPORTED_TYPES */
+#define USB_RX_FULL		-1
+#define USB_RX_AVAIL	1
+#define USB_RX_EMPTY	0
 #define USB_BUFFER_SIZE		2048
 struct __usbbuf{
 	union __databuff{

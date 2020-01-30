@@ -161,7 +161,7 @@ static int8_t CDC_Init_FS(void)
 	}
 	usbbuf.tail = 0;
 	usbbuf.head = 0;
-	usbbuf.status = 0;
+	usbbuf.status = USB_RX_EMPTY;
 	usbbuf.packets = 0;
 
   /* Set Application Buffers */
@@ -284,10 +284,11 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 
 		//is the buffer full?
 		if( usbbuf.head == ( usbbuf.tail % USB_BUFFER_SIZE ) + 1 ){
-			usbbuf.status = 1;
+			usbbuf.status = USB_RX_FULL;
 		}else{
 			//copy into usbbuf byte buffer
 			usbbuf.data.byte[usbbuf.tail++] = *(rxbuf++);
+			usbbuf.status = USB_RX_AVAIL;
 			//wrap around
 			usbbuf.tail = usbbuf.tail % USB_BUFFER_SIZE;
 		}
@@ -325,6 +326,18 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
 }
 
 /* USER CODE BEGIN PRIVATE_FUNCTIONS_IMPLEMENTATION */
+uint8_t CDC_ReadBuffer_Byte(void){
+
+	uint8_t data;
+
+	data = usbbuf.data.byte[usbbuf.head++];
+	usbbuf.head = usbbuf.head % USB_BUFFER_SIZE;
+	if( usbbuf.head == usbbuf.tail ){
+		usbbuf.status = USB_RX_EMPTY;
+	}
+	return data;
+}
+
 
 /* USER CODE END PRIVATE_FUNCTIONS_IMPLEMENTATION */
 
