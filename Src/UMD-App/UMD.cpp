@@ -39,7 +39,7 @@ UMD::UMD(){
 
 	// say hello
 	std::string str = "UMDv2\n\r";
-	sendUSB(str);
+	send_usb(str);
 
 }
 
@@ -51,8 +51,10 @@ void UMD::init(void){
 	int i;
 
 	std::string str = "UMDv2 initializing...\n\r";
-	sendUSB(str);
+	send_usb(str);
 
+	// turn off cartridge voltage source
+	vcart_select(vcart_off);
 
 	// flash to show we're alive
 	for(i=0;i<4;i++){
@@ -75,7 +77,7 @@ void UMD::run(void){
 
 	// We need a cart factory but only one, and this function is the only one that needs to update
 	// the cart ptr.  So we can use the static keyword to keep this across calls to the function
-	setCartridgeType(0);
+	set_cartridge_type(0);
 
 	cart->init();
 	//uint8_t byte = cart->readByte(0x12345678);
@@ -86,14 +88,14 @@ void UMD::run(void){
 		shiftLEDs(LED_SHIFT_DIR_LEFT);
 		HAL_Delay(500);
 		shiftLEDs(LED_SHIFT_DIR_LEFT);
-		sendUSB(str);
+		send_usb(str);
 	}
 }
 
 /*******************************************************************//**
  *
  **********************************************************************/
-void UMD::setCartridgeType(uint8_t mode){
+void UMD::set_cartridge_type(uint8_t mode){
 	static CartFactory cf;
 	cart = cf.getCart(static_cast<CartFactory::Mode>(mode));
 }
@@ -101,29 +103,45 @@ void UMD::setCartridgeType(uint8_t mode){
 /*******************************************************************//**
  *
  **********************************************************************/
-void UMD::sendUSB(std::string str){
+void UMD::send_usb(std::string str){
 	CDC_Transmit_FS( (uint8_t*)str.c_str(), str.length() );
 }
 
 /*******************************************************************//**
  *
  **********************************************************************/
-void UMD::sendUSB(uint8_t* buf, uint16_t size){
+void UMD::send_usb(uint8_t* buf, uint16_t size){
 	CDC_Transmit_FS(buf, size);
 }
 
 /*******************************************************************//**
  *
  **********************************************************************/
-uint16_t UMD::receiveUSB(uint8_t* buf, uint16_t size){
+uint16_t UMD::receive_usb(uint8_t* buf, uint16_t size){
 	uint16_t data;
 	data = CDC_ReadBuffer(buf, size);
 	return data;
 }
 
-
-void UMD::vsel(void){
-
+/*******************************************************************//**
+ *
+ **********************************************************************/
+void UMD::vcart_select(cartv_typ voltage){
+	switch(voltage){
+	case vcart_3v3:
+		HAL_GPIO_WritePin(VSEL0_GPIO_Port, VSEL0_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(VSEL1_GPIO_Port, VSEL1_Pin, GPIO_PIN_RESET);
+		break;
+	case vcart_5v:
+		HAL_GPIO_WritePin(VSEL0_GPIO_Port, VSEL0_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(VSEL1_GPIO_Port, VSEL1_Pin, GPIO_PIN_RESET);
+		break;
+	case vcart_off:
+	default:
+		HAL_GPIO_WritePin(VSEL0_GPIO_Port, VSEL0_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(VSEL1_GPIO_Port, VSEL1_Pin, GPIO_PIN_SET);
+		break;
+	}
 }
 
 /*******************************************************************//**

@@ -158,8 +158,8 @@ static int8_t CDC_Init_FS(void)
 	for(i=0; i<(USB_BUFFER_SIZE/2); i++){
 		usbbuf.data.word[i] = 0;
 	}
-	usbbuf.tail = 0;
-	usbbuf.head = 0;
+	usbbuf.ip = 0;
+	usbbuf.op = 0;
 	usbbuf.status = USB_RX_EMPTY;
 	usbbuf.packets = 0;
 
@@ -282,14 +282,14 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 	for(i=0; i<(*Len); i++){
 
 		//is the buffer full?
-		if( usbbuf.head == ( usbbuf.tail % USB_BUFFER_SIZE ) + 1 ){
+		if( usbbuf.op == ( usbbuf.ip & USB_BUFFER_SIZE ) + 1 ){
 			usbbuf.status = USB_RX_FULL;
 		}else{
 			//copy into usbbuf byte buffer
-			usbbuf.data.byte[usbbuf.tail++] = *(rxbuf++);
+			usbbuf.data.byte[usbbuf.ip++] = *(rxbuf++);
 			usbbuf.status = USB_RX_AVAIL;
 			//wrap around
-			usbbuf.tail = usbbuf.tail % USB_BUFFER_SIZE;
+			usbbuf.ip &= USB_BUFFER_SIZE;
 		}
 	}
 
@@ -329,9 +329,9 @@ uint8_t CDC_ReadBuffer_Byte(void){
 
 	uint8_t data;
 
-	data = usbbuf.data.byte[usbbuf.head++];
-	usbbuf.head = usbbuf.head % USB_BUFFER_SIZE;
-	if( usbbuf.head == usbbuf.tail ){
+	data = usbbuf.data.byte[usbbuf.op++];
+	usbbuf.op &= USB_BUFFER_SIZE;
+	if( usbbuf.op == usbbuf.ip ){
 		usbbuf.status = USB_RX_EMPTY;
 	}
 	return data;
@@ -342,8 +342,10 @@ uint16_t CDC_ReadBuffer(uint8_t *buf, uint16_t len){
 	uint16_t count = 0;
 
 	// ensure we don't overrun the buffer
-	while( usbbuf.head != usbbuf.tail ){
-		*(buf++) = usbbuf.data.byte[usbbuf.head++];
+	while( usbbuf.op != usbbuf.ip ){
+		*(buf++) = usbbuf.data.byte[usbbuf.op++];
+		// wrap buffer
+		usbbuf.op &= USB_BUFFER_SIZE;
 		// return if all requested bytes were read
 		if( count++ == len ){
 			return count;
@@ -352,6 +354,11 @@ uint16_t CDC_ReadBuffer(uint8_t *buf, uint16_t len){
 	// return early if no more bytes are available
 	usbbuf.status = USB_RX_EMPTY;
 	return count;
+}
+
+uint16_t CDC_Availble(void){
+
+	return ( usbbuf.ip - usbbuf.op ) & USB_BUFFER_SIZE;
 }
 
 

@@ -62,17 +62,17 @@
   */
 
 /* USER CODE BEGIN EXPORTED_TYPES */
-#define USB_RX_FULL		-1
-#define USB_RX_AVAIL	1
-#define USB_RX_EMPTY	0
-#define USB_BUFFER_SIZE		2048
+#define USB_RX_FULL				-1
+#define USB_RX_AVAIL			1
+#define USB_RX_EMPTY			0
+#define USB_BUFFER_SIZE			2048			///< must be a power of two
 struct _USB_BUFFER{
 	union __databuff{
-		uint8_t		byte[USB_BUFFER_SIZE];     ///< byte access within dataBuffer
-		uint16_t    word[USB_BUFFER_SIZE/2];   ///< word access within dataBuffer
+		uint8_t		byte[USB_BUFFER_SIZE];     	///< byte access within dataBuffer
+		uint16_t    word[USB_BUFFER_SIZE/2];   	///< word access within dataBuffer
 	} data;
-	uint16_t	tail;
-	uint16_t	head;
+	uint16_t	ip;
+	uint16_t	op;
 	uint8_t		status;
 	uint32_t	packets;
 };
@@ -119,6 +119,7 @@ extern USBD_CDC_ItfTypeDef USBD_Interface_fops_FS;
 uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
 
 /* USER CODE BEGIN EXPORTED_FUNCTIONS */
+uint16_t CDC_Available();
 uint8_t CDC_ReadBuffer_Byte(void);
 uint16_t CDC_ReadBuffer(uint8_t *buf, uint16_t len);
 /* USER CODE END EXPORTED_FUNCTIONS */

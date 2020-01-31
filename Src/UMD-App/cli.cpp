@@ -63,7 +63,7 @@ char *SerialCommand::next()
 void SerialCommand::readSerial()
 {
 	// If we're using the Hardware port, check it.   Otherwise check the user-created SoftwareSerial Port
-	while ( usbbuf.head != usbbuf.tail )
+	while ( CDC_Available() )
 
 	{
 		int i;
@@ -98,8 +98,8 @@ void SerialCommand::readSerial()
 		}
 		if (isprint(inChar))   // Only printable characters into the buffer
 		{
-			buffer[bufPos++]=inChar;   // Put character into buffer
-			buffer[bufPos]='\0';  // Null terminate
+			buffer[bufPos++] = inChar;   // Put character into buffer
+			buffer[bufPos] = '\0';  // Null terminate
 			if (bufPos > SERIALCOMMANDBUFFER-1) bufPos=0; // wrap buffer around if full
 		}
 	}

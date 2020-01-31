@@ -51,19 +51,20 @@ private:
 
 	// initializers
 	void init(void);
-	void setCartridgeType(uint8_t mode);
+	void set_cartridge_type(uint8_t mode);
 
-	// USB transmit methods
-	void sendUSB(std::string);
-	void sendUSB(uint8_t* buf, uint16_t size);
-	uint16_t receiveUSB(uint8_t* buf, uint16_t size);
+	// USB methods
+	void send_usb(std::string);
+	void send_usb(uint8_t* buf, uint16_t size);
+	uint16_t receive_usb(uint8_t* buf, uint16_t size);
 
 	// LED methods
 	void setLEDs(uint8_t LEDs);
 	void shiftLEDs(uint8_t dir);
 
-	// IO methods
-	void vsel(void);
+	// Cartridge Voltage
+	typedef enum {vcart_off, vcart_3v3, vcart_5v}cartv_typ;
+	void vcart_select(cartv_typ voltage);
 
 };
 
