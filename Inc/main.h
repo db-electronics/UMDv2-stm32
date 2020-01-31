@@ -91,6 +91,8 @@ void Error_Handler(void);
 #define SEL1_GPIO_Port GPIOG
 #define GP8_Pin GPIO_PIN_6
 #define GP8_GPIO_Port GPIOC
+#define VSEL1_Pin GPIO_PIN_7
+#define VSEL1_GPIO_Port GPIOC
 #define VSEL0_Pin GPIO_PIN_8
 #define VSEL0_GPIO_Port GPIOA
 #define nRD_Pin GPIO_PIN_4

@@ -32,18 +32,13 @@
 #include "gpio.h"
 #include "fsmc.h"
 
-#include "usbd_cdc_if.h"
 #include "UMD.h"
-#include "cartfactory.h"
-#include "Cartridges/Cartridge.h"
-#include <cstdint>
-#include <string>
-using namespace std;
+
 
 UMD::UMD(){
 
 	// say hello
-	string str = "UMDv2\n\r";
+	std::string str = "UMDv2\n\r";
 	sendUSB(str);
 
 }
@@ -55,7 +50,7 @@ void UMD::init(void){
 
 	int i;
 
-	string str = "UMDv2 initializing...\n\r";
+	std::string str = "UMDv2 initializing...\n\r";
 	sendUSB(str);
 
 
@@ -74,7 +69,8 @@ void UMD::init(void){
  **********************************************************************/
 void UMD::run(void){
 
-	string str = "UMDv2 running...\n\r";
+	SerialCommand cli();
+	std::string str = "UMDv2 running...\n\r";
 	init();
 
 	// We need a cart factory but only one, and this function is the only one that needs to update
@@ -105,7 +101,7 @@ void UMD::setCartridgeType(uint8_t mode){
 /*******************************************************************//**
  *
  **********************************************************************/
-void UMD::sendUSB(string str){
+void UMD::sendUSB(std::string str){
 	CDC_Transmit_FS( (uint8_t*)str.c_str(), str.length() );
 }
 

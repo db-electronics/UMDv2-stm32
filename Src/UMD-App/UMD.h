@@ -25,12 +25,16 @@
 
 #include <cstdint>
 #include <string>
+
 #include "Cartridges/Cartridge.h"
+#include "usbd_cdc_if.h"
+#include "cartfactory.h"
+#include "Cartridges/Cartridge.h"
+#include "cli.h"
 
 #define LED_SHIFT_DIR_LEFT	0
 #define LED_SHIFT_DIR_RIGHT 1
 
-using namespace std;
 
 class UMD{
 
@@ -50,13 +54,16 @@ private:
 	void setCartridgeType(uint8_t mode);
 
 	// USB transmit methods
-	void sendUSB(string);
+	void sendUSB(std::string);
 	void sendUSB(uint8_t* buf, uint16_t size);
 	uint16_t receiveUSB(uint8_t* buf, uint16_t size);
 
 	// LED methods
 	void setLEDs(uint8_t LEDs);
 	void shiftLEDs(uint8_t dir);
+
+	// IO methods
+	void vsel(void);
 
 };
 

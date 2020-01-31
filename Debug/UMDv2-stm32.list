@@ -27,23 +27,23 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   ALLOC
  11 .ARM.attributes 00000030  00000000  00000000  000201e4  2**0
                   CONTENTS, READONLY
- 12 .debug_info   000346c0  00000000  00000000  00020214  2**0
+ 12 .debug_info   00034c37  00000000  00000000  00020214  2**0
                   CONTENTS, READONLY, DEBUGGING
- 13 .debug_abbrev 00006a28  00000000  00000000  000548d4  2**0
+ 13 .debug_abbrev 00006a26  00000000  00000000  00054e4b  2**0
                   CONTENTS, READONLY, DEBUGGING
- 14 .debug_aranges 00001c18  00000000  00000000  0005b300  2**3
+ 14 .debug_aranges 00001c00  00000000  00000000  0005b878  2**3
                   CONTENTS, READONLY, DEBUGGING
- 15 .debug_ranges 00001930  00000000  00000000  0005cf18  2**3
+ 15 .debug_ranges 00001918  00000000  00000000  0005d478  2**3
                   CONTENTS, READONLY, DEBUGGING
- 16 .debug_macro  0002de50  00000000  00000000  0005e848  2**0
+ 16 .debug_macro  0002dfa0  00000000  00000000  0005ed90  2**0
                   CONTENTS, READONLY, DEBUGGING
- 17 .debug_line   00021189  00000000  00000000  0008c698  2**0
+ 17 .debug_line   00021216  00000000  00000000  0008cd30  2**0
                   CONTENTS, READONLY, DEBUGGING
- 18 .debug_str    000e9524  00000000  00000000  000ad821  2**0
+ 18 .debug_str    000e978e  00000000  00000000  000adf46  2**0
                   CONTENTS, READONLY, DEBUGGING
- 19 .comment      0000007b  00000000  00000000  00196d45  2**0
+ 19 .comment      0000007b  00000000  00000000  001976d4  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  00008824  00000000  00000000  00196dc0  2**2
+ 20 .debug_frame  000087d8  00000000  00000000  00197750  2**2
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -513,7 +513,7 @@ __weak void HAL_IncTick(void)
  80005e8:	4770      	bx	lr
  80005ea:	bf00      	nop
  80005ec:	20000004 	.word	0x20000004
- 80005f0:	20000ad8 	.word	0x20000ad8
+ 80005f0:	200002cc 	.word	0x200002cc
 
 080005f4 <HAL_GetTick>:
   * @note This function is declared as __weak to be overwritten in case of other 
@@ -533,7 +533,7 @@ __weak uint32_t HAL_GetTick(void)
  8000600:	f85d 7b04 	ldr.w	r7, [sp], #4
  8000604:	4770      	bx	lr
  8000606:	bf00      	nop
- 8000608:	20000ad8 	.word	0x20000ad8
+ 8000608:	200002cc 	.word	0x200002cc
 
 0800060c <HAL_Delay>:
   *       implementations in user file.
@@ -22795,10 +22795,10 @@ void Cartridge::init(void){
  800875e:	4770      	bx	lr
 
 08008760 <_ZN3UMDC1Ev>:
-#include "Cartridges/Cartridge.h"
-#include <cstdint>
-#include <string>
-using namespace std;
+#include "fsmc.h"
+
+#include "UMD.h"
+
 
 UMD::UMD(){
  8008760:	b580      	push	{r7, lr}
@@ -22807,7 +22807,7 @@ UMD::UMD(){
  8008766:	6078      	str	r0, [r7, #4]
 
 	// say hello
-	string str = "UMDv2\n\r";
+	std::string str = "UMDv2\n\r";
  8008768:	f107 0324 	add.w	r3, r7, #36	; 0x24
  800876c:	4618      	mov	r0, r3
  800876e:	f002 f8d2 	bl	800a916 <_ZNSaIcEC1Ev>
@@ -22832,7 +22832,7 @@ UMD::UMD(){
  80087a8:	f107 0328 	add.w	r3, r7, #40	; 0x28
  80087ac:	4618      	mov	r0, r3
  80087ae:	f002 f8ee 	bl	800a98e <_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEED1Ev>
-	string str = "UMDv2\n\r";
+	std::string str = "UMDv2\n\r";
  80087b2:	f107 030c 	add.w	r3, r7, #12
  80087b6:	4618      	mov	r0, r3
  80087b8:	f002 f8e9 	bl	800a98e <_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEED1Ev>
@@ -22859,7 +22859,7 @@ void UMD::init(void){
 
 	int i;
 
-	string str = "UMDv2 initializing...\n\r";
+	std::string str = "UMDv2 initializing...\n\r";
  80087d4:	f107 0320 	add.w	r3, r7, #32
  80087d8:	4618      	mov	r0, r3
  80087da:	f002 f89c 	bl	800a916 <_ZNSaIcEC1Ev>
@@ -22917,7 +22917,7 @@ void UMD::init(void){
  800884c:	2100      	movs	r1, #0
  800884e:	6878      	ldr	r0, [r7, #4]
  8008850:	f000 f898 	bl	8008984 <_ZN3UMD7setLEDsEh>
-	string str = "UMDv2 initializing...\n\r";
+	std::string str = "UMDv2 initializing...\n\r";
  8008854:	f107 0308 	add.w	r3, r7, #8
  8008858:	4618      	mov	r0, r3
  800885a:	f002 f898 	bl	800a98e <_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEED1Ev>
@@ -22940,7 +22940,8 @@ void UMD::run(void){
  8008870:	af00      	add	r7, sp, #0
  8008872:	6078      	str	r0, [r7, #4]
 
-	string str = "UMDv2 running...\n\r";
+	SerialCommand cli();
+	std::string str = "UMDv2 running...\n\r";
  8008874:	f107 0324 	add.w	r3, r7, #36	; 0x24
  8008878:	4618      	mov	r0, r3
  800887a:	f002 f84c 	bl	800a916 <_ZNSaIcEC1Ev>
@@ -23013,7 +23014,7 @@ void UMD::setCartridgeType(uint8_t mode){
  80088fc:	4801      	ldr	r0, [pc, #4]	; (8008904 <__tcf_0+0xc>)
  80088fe:	f000 f8c8 	bl	8008a92 <_ZN11CartFactoryD1Ev>
  8008902:	bd80      	pop	{r7, pc}
- 8008904:	20000a20 	.word	0x20000a20
+ 8008904:	20000214 	.word	0x20000214
 
 08008908 <_ZN3UMD16setCartridgeTypeEh>:
 void UMD::setCartridgeType(uint8_t mode){
@@ -23050,8 +23051,8 @@ void UMD::setCartridgeType(uint8_t mode){
  8008946:	46bd      	mov	sp, r7
  8008948:	bd80      	pop	{r7, pc}
  800894a:	bf00      	nop
- 800894c:	20000a30 	.word	0x20000a30
- 8008950:	20000a20 	.word	0x20000a20
+ 800894c:	20000224 	.word	0x20000224
+ 8008950:	20000214 	.word	0x20000214
  8008954:	080088f9 	.word	0x080088f9
 
 08008958 <_ZN3UMD7sendUSBENSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE>:
@@ -23059,7 +23060,7 @@ void UMD::setCartridgeType(uint8_t mode){
 /*******************************************************************//**
  *
  **********************************************************************/
-void UMD::sendUSB(string str){
+void UMD::sendUSB(std::string str){
  8008958:	b590      	push	{r4, r7, lr}
  800895a:	b083      	sub	sp, #12
  800895c:	af00      	add	r7, sp, #0
@@ -23439,7 +23440,7 @@ void MX_ADC1_Init(void)
  8008ba2:	3710      	adds	r7, #16
  8008ba4:	46bd      	mov	sp, r7
  8008ba6:	bd80      	pop	{r7, pc}
- 8008ba8:	20000adc 	.word	0x20000adc
+ 8008ba8:	200002d0 	.word	0x200002d0
  8008bac:	40012000 	.word	0x40012000
  8008bb0:	0f000001 	.word	0x0f000001
 
@@ -23535,7 +23536,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* adcHandle)
   * @brief  Initializes the SD card device.
   * @retval SD status
   */
-uint8_t BSP_SD_Init(void)
+__weak uint8_t BSP_SD_Init(void)
 {
  8008c3c:	b580      	push	{r7, lr}
  8008c3e:	b082      	sub	sp, #8
@@ -23589,14 +23590,14 @@ uint8_t BSP_SD_Init(void)
  8008c7e:	46bd      	mov	sp, r7
  8008c80:	bd80      	pop	{r7, pc}
  8008c82:	bf00      	nop
- 8008c84:	20001120 	.word	0x20001120
+ 8008c84:	20000914 	.word	0x20000914
 
 08008c88 <BSP_SD_ReadBlocks>:
-  * @param  NumOfBlocks: Number of SD blocks to read 
+  * @param  NumOfBlocks: Number of SD blocks to read
   * @param  Timeout: Timeout for read operation
   * @retval SD status
   */
-uint8_t BSP_SD_ReadBlocks(uint32_t *pData, uint32_t ReadAddr, uint32_t NumOfBlocks, uint32_t Timeout)
+__weak uint8_t BSP_SD_ReadBlocks(uint32_t *pData, uint32_t ReadAddr, uint32_t NumOfBlocks, uint32_t Timeout)
 {
  8008c88:	b580      	push	{r7, lr}
  8008c8a:	b088      	sub	sp, #32
@@ -23608,7 +23609,7 @@ uint8_t BSP_SD_ReadBlocks(uint32_t *pData, uint32_t ReadAddr, uint32_t NumOfBloc
   uint8_t sd_state = MSD_OK;
  8008c96:	2300      	movs	r3, #0
  8008c98:	75fb      	strb	r3, [r7, #23]
-  
+
   if (HAL_SD_ReadBlocks(&hsd, (uint8_t *)pData, ReadAddr, NumOfBlocks, Timeout) != HAL_OK)
  8008c9a:	683b      	ldr	r3, [r7, #0]
  8008c9c:	9300      	str	r3, [sp, #0]
@@ -23634,14 +23635,14 @@ uint8_t BSP_SD_ReadBlocks(uint32_t *pData, uint32_t ReadAddr, uint32_t NumOfBloc
  8008cba:	46bd      	mov	sp, r7
  8008cbc:	bd80      	pop	{r7, pc}
  8008cbe:	bf00      	nop
- 8008cc0:	20001120 	.word	0x20001120
+ 8008cc0:	20000914 	.word	0x20000914
 
 08008cc4 <BSP_SD_WriteBlocks>:
   * @param  NumOfBlocks: Number of SD blocks to write
   * @param  Timeout: Timeout for write operation
   * @retval SD status
   */
-uint8_t BSP_SD_WriteBlocks(uint32_t *pData, uint32_t WriteAddr, uint32_t NumOfBlocks, uint32_t Timeout)
+__weak uint8_t BSP_SD_WriteBlocks(uint32_t *pData, uint32_t WriteAddr, uint32_t NumOfBlocks, uint32_t Timeout)
 {
  8008cc4:	b580      	push	{r7, lr}
  8008cc6:	b088      	sub	sp, #32
@@ -23653,7 +23654,7 @@ uint8_t BSP_SD_WriteBlocks(uint32_t *pData, uint32_t WriteAddr, uint32_t NumOfBl
   uint8_t sd_state = MSD_OK;
  8008cd2:	2300      	movs	r3, #0
  8008cd4:	75fb      	strb	r3, [r7, #23]
-  
+
   if (HAL_SD_WriteBlocks(&hsd, (uint8_t *)pData, WriteAddr, NumOfBlocks, Timeout) != HAL_OK) 
  8008cd6:	683b      	ldr	r3, [r7, #0]
  8008cd8:	9300      	str	r3, [sp, #0]
@@ -23679,14 +23680,14 @@ uint8_t BSP_SD_WriteBlocks(uint32_t *pData, uint32_t WriteAddr, uint32_t NumOfBl
  8008cf6:	46bd      	mov	sp, r7
  8008cf8:	bd80      	pop	{r7, pc}
  8008cfa:	bf00      	nop
- 8008cfc:	20001120 	.word	0x20001120
+ 8008cfc:	20000914 	.word	0x20000914
 
 08008d00 <BSP_SD_GetCardState>:
   *          This value can be one of the following values:
   *            @arg  SD_TRANSFER_OK: No data transfer is acting
   *            @arg  SD_TRANSFER_BUSY: Data transfer is acting
   */
-uint8_t BSP_SD_GetCardState(void)
+__weak uint8_t BSP_SD_GetCardState(void)
 {
  8008d00:	b580      	push	{r7, lr}
  8008d02:	af00      	add	r7, sp, #0
@@ -23703,14 +23704,14 @@ uint8_t BSP_SD_GetCardState(void)
  8008d16:	4618      	mov	r0, r3
  8008d18:	bd80      	pop	{r7, pc}
  8008d1a:	bf00      	nop
- 8008d1c:	20001120 	.word	0x20001120
+ 8008d1c:	20000914 	.word	0x20000914
 
 08008d20 <BSP_SD_GetCardInfo>:
   * @brief  Get SD information about specific SD card.
   * @param  CardInfo: Pointer to HAL_SD_CardInfoTypedef structure
   * @retval None 
   */
-void BSP_SD_GetCardInfo(HAL_SD_CardInfoTypeDef *CardInfo)
+__weak void BSP_SD_GetCardInfo(HAL_SD_CardInfoTypeDef *CardInfo)
 {
  8008d20:	b580      	push	{r7, lr}
  8008d22:	b082      	sub	sp, #8
@@ -23726,14 +23727,14 @@ void BSP_SD_GetCardInfo(HAL_SD_CardInfoTypeDef *CardInfo)
  8008d32:	3708      	adds	r7, #8
  8008d34:	46bd      	mov	sp, r7
  8008d36:	bd80      	pop	{r7, pc}
- 8008d38:	20001120 	.word	0x20001120
+ 8008d38:	20000914 	.word	0x20000914
 
 08008d3c <BSP_SD_IsDetected>:
  * @brief  Detects if SD card is correctly plugged in the memory slot or not.
  * @param  None
  * @retval Returns if SD is detected or not
  */
-uint8_t BSP_SD_IsDetected(void)
+__weak uint8_t BSP_SD_IsDetected(void)
 {
  8008d3c:	b580      	push	{r7, lr}
  8008d3e:	b082      	sub	sp, #8
@@ -23791,7 +23792,7 @@ void MX_CRC_Init(void)
  8008d7a:	bf00      	nop
  8008d7c:	bd80      	pop	{r7, pc}
  8008d7e:	bf00      	nop
- 8008d80:	20000b24 	.word	0x20000b24
+ 8008d80:	20000318 	.word	0x20000318
  8008d84:	40023000 	.word	0x40023000
 
 08008d88 <HAL_CRC_MspInit>:
@@ -23866,9 +23867,9 @@ void MX_FATFS_Init(void)
 }
  8008de0:	bf00      	nop
  8008de2:	bd80      	pop	{r7, pc}
- 8008de4:	20000b30 	.word	0x20000b30
+ 8008de4:	20000324 	.word	0x20000324
  8008de8:	0800aeb8 	.word	0x0800aeb8
- 8008dec:	20000b2c 	.word	0x20000b2c
+ 8008dec:	20000320 	.word	0x20000320
 
 08008df0 <BSP_PlatformIsDetected>:
   *
@@ -24386,11 +24387,11 @@ void MX_FSMC_Init(void)
  80090d6:	635a      	str	r2, [r3, #52]	; 0x34
  80090d8:	e00a      	b.n	80090f0 <MX_FSMC_Init+0x2d4>
  80090da:	bf00      	nop
- 80090dc:	20000f94 	.word	0x20000f94
+ 80090dc:	20000788 	.word	0x20000788
  80090e0:	a0000104 	.word	0xa0000104
- 80090e4:	20000fe0 	.word	0x20000fe0
- 80090e8:	20001080 	.word	0x20001080
- 80090ec:	20001030 	.word	0x20001030
+ 80090e4:	200007d4 	.word	0x200007d4
+ 80090e8:	20000874 	.word	0x20000874
+ 80090ec:	20000824 	.word	0x20000824
   hsram4.Init.WriteBurst = FSMC_WRITE_BURST_DISABLE;
  80090f0:	4b1b      	ldr	r3, [pc, #108]	; (8009160 <MX_FSMC_Init+0x344>)
  80090f2:	2200      	movs	r2, #0
@@ -24471,7 +24472,7 @@ void MX_FSMC_Init(void)
  800915a:	3738      	adds	r7, #56	; 0x38
  800915c:	46bd      	mov	sp, r7
  800915e:	bd80      	pop	{r7, pc}
- 8009160:	20001030 	.word	0x20001030
+ 8009160:	20000824 	.word	0x20000824
 
 08009164 <HAL_FSMC_MspInit>:
 
@@ -24503,6 +24504,7 @@ static void HAL_FSMC_MspInit(void){
  8009180:	4b2a      	ldr	r3, [pc, #168]	; (800922c <HAL_FSMC_MspInit+0xc8>)
  8009182:	2201      	movs	r2, #1
  8009184:	601a      	str	r2, [r3, #0]
+
   /* Peripheral clock enable */
   __HAL_RCC_FSMC_CLK_ENABLE();
  8009186:	2300      	movs	r3, #0
@@ -24633,7 +24635,7 @@ static void HAL_FSMC_MspInit(void){
  8009226:	3718      	adds	r7, #24
  8009228:	46bd      	mov	sp, r7
  800922a:	bd80      	pop	{r7, pc}
- 800922c:	20000a34 	.word	0x20000a34
+ 800922c:	20000228 	.word	0x20000228
  8009230:	40023800 	.word	0x40023800
  8009234:	40021000 	.word	0x40021000
  8009238:	40021400 	.word	0x40021400
@@ -24817,9 +24819,9 @@ void MX_GPIO_Init(void)
                           |nOUT_EN0_Pin|VSEL0_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GP3_GPIO_Port, GP3_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, GP3_Pin|VSEL1_Pin, GPIO_PIN_RESET);
  800936e:	2200      	movs	r2, #0
- 8009370:	2120      	movs	r1, #32
+ 8009370:	21a0      	movs	r1, #160	; 0xa0
  8009372:	486d      	ldr	r0, [pc, #436]	; (8009528 <MX_GPIO_Init+0x2bc>)
  8009374:	f7f7 feb8 	bl	80010e8 <HAL_GPIO_WritePin>
 
@@ -24861,11 +24863,11 @@ void MX_GPIO_Init(void)
  80093b2:	f7f7 fcef 	bl	8000d94 <HAL_GPIO_Init>
 
   /*Configure GPIO pins : PC14 PC15 PC0 PC1 
-                           PC2 PC3 PC7 */
+                           PC2 PC3 */
   GPIO_InitStruct.Pin = GPIO_PIN_14|GPIO_PIN_15|GPIO_PIN_0|GPIO_PIN_1 
- 80093b6:	f24c 038f 	movw	r3, #49295	; 0xc08f
+ 80093b6:	f24c 030f 	movw	r3, #49167	; 0xc00f
  80093ba:	627b      	str	r3, [r7, #36]	; 0x24
-                          |GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_7;
+                          |GPIO_PIN_2|GPIO_PIN_3;
   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
  80093bc:	2303      	movs	r3, #3
  80093be:	62bb      	str	r3, [r7, #40]	; 0x28
@@ -24933,9 +24935,9 @@ void MX_GPIO_Init(void)
  800941c:	4841      	ldr	r0, [pc, #260]	; (8009524 <MX_GPIO_Init+0x2b8>)
  800941e:	f7f7 fcb9 	bl	8000d94 <HAL_GPIO_Init>
 
-  /*Configure GPIO pin : PtPin */
-  GPIO_InitStruct.Pin = GP3_Pin;
- 8009422:	2320      	movs	r3, #32
+  /*Configure GPIO pins : PCPin PCPin */
+  GPIO_InitStruct.Pin = GP3_Pin|VSEL1_Pin;
+ 8009422:	23a0      	movs	r3, #160	; 0xa0
  8009424:	627b      	str	r3, [r7, #36]	; 0x24
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
  8009426:	2301      	movs	r3, #1
@@ -24946,7 +24948,7 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
  800942e:	2300      	movs	r3, #0
  8009430:	633b      	str	r3, [r7, #48]	; 0x30
-  HAL_GPIO_Init(GP3_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
  8009432:	f107 0324 	add.w	r3, r7, #36	; 0x24
  8009436:	4619      	mov	r1, r3
  8009438:	483b      	ldr	r0, [pc, #236]	; (8009528 <MX_GPIO_Init+0x2bc>)
@@ -25163,7 +25165,7 @@ void MX_I2C1_Init(void)
 }
  8009588:	bf00      	nop
  800958a:	bd80      	pop	{r7, pc}
- 800958c:	200010cc 	.word	0x200010cc
+ 800958c:	200008c0 	.word	0x200008c0
  8009590:	40005400 	.word	0x40005400
  8009594:	000186a0 	.word	0x000186a0
 
@@ -25915,7 +25917,7 @@ void MX_SDIO_SD_Init(void)
  80099bc:	46bd      	mov	sp, r7
  80099be:	f85d 7b04 	ldr.w	r7, [sp], #4
  80099c2:	4770      	bx	lr
- 80099c4:	20001120 	.word	0x20001120
+ 80099c4:	20000914 	.word	0x20000914
  80099c8:	40012c00 	.word	0x40012c00
 
 080099cc <HAL_SD_MspInit>:
@@ -26120,7 +26122,7 @@ void MX_SPI2_Init(void)
 }
  8009afc:	bf00      	nop
  8009afe:	bd80      	pop	{r7, pc}
- 8009b00:	200011a4 	.word	0x200011a4
+ 8009b00:	20000998 	.word	0x20000998
  8009b04:	40003800 	.word	0x40003800
 
 08009b08 <HAL_SPI_MspInit>:
@@ -26573,7 +26575,7 @@ caddr_t _sbrk(int incr)
  8009ce6:	3710      	adds	r7, #16
  8009ce8:	46bd      	mov	sp, r7
  8009cea:	bd80      	pop	{r7, pc}
- 8009cec:	20000a38 	.word	0x20000a38
+ 8009cec:	2000022c 	.word	0x2000022c
  8009cf0:	20001ae8 	.word	0x20001ae8
 
 08009cf4 <SystemInit>:
@@ -26713,7 +26715,7 @@ void MX_USART3_UART_Init(void)
  8009da6:	bf00      	nop
  8009da8:	bd80      	pop	{r7, pc}
  8009daa:	bf00      	nop
- 8009dac:	200011fc 	.word	0x200011fc
+ 8009dac:	200009f0 	.word	0x200009f0
  8009db0:	40004800 	.word	0x40004800
 
 08009db4 <HAL_UART_MspInit>:
@@ -26781,8 +26783,8 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
  8009e14:	2302      	movs	r3, #2
  8009e16:	61bb      	str	r3, [r7, #24]
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
- 8009e18:	2301      	movs	r3, #1
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+ 8009e18:	2300      	movs	r3, #0
  8009e1a:	61fb      	str	r3, [r7, #28]
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
  8009e1c:	2303      	movs	r3, #3
@@ -26875,7 +26877,7 @@ void MX_USB_DEVICE_Init(void)
  8009e90:	bf00      	nop
  8009e92:	bd80      	pop	{r7, pc}
  8009e94:	20000130 	.word	0x20000130
- 8009e98:	2000123c 	.word	0x2000123c
+ 8009e98:	20000a30 	.word	0x20000a30
  8009e9c:	20000014 	.word	0x20000014
  8009ea0:	20000120 	.word	0x20000120
 
@@ -26938,7 +26940,7 @@ static int8_t CDC_Init_FS(void)
  8009ef0:	f85d 7b04 	ldr.w	r7, [sp], #4
  8009ef4:	4770      	bx	lr
  8009ef6:	bf00      	nop
- 8009ef8:	20000214 	.word	0x20000214
+ 8009ef8:	20000ccc 	.word	0x20000ccc
 
 08009efc <CDC_DeInit_FS>:
 /**
@@ -27135,7 +27137,7 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
  800a058:	46bd      	mov	sp, r7
  800a05a:	f85d 7b04 	ldr.w	r7, [sp], #4
  800a05e:	4770      	bx	lr
- 800a060:	20000214 	.word	0x20000214
+ 800a060:	20000ccc 	.word	0x20000ccc
 
 0800a064 <CDC_Transmit_FS>:
   * @param  Buf: Buffer of data to be sent
@@ -27187,7 +27189,7 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
  800a0a6:	46bd      	mov	sp, r7
  800a0a8:	bd80      	pop	{r7, pc}
  800a0aa:	bf00      	nop
- 800a0ac:	2000123c 	.word	0x2000123c
+ 800a0ac:	20000a30 	.word	0x20000a30
 
 0800a0b0 <HAL_PCD_MspInit>:
                        LL Driver Callbacks (PCD -> USB Device Library)
@@ -28415,7 +28417,9 @@ uint8_t * USBD_FS_SerialStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
    * ID */
   Get_SerialNum();
  800a762:	f000 f843 	bl	800a7ec <Get_SerialNum>
-
+  /* USER CODE BEGIN USBD_FS_SerialStrDescriptor */
+  
+  /* USER CODE END USBD_FS_SerialStrDescriptor */
   return (uint8_t *) USBD_StringSerial;
  800a766:	4b02      	ldr	r3, [pc, #8]	; (800a770 <USBD_FS_SerialStrDescriptor+0x20>)
 }
@@ -28962,7 +28966,7 @@ Infinite_Loop:
  800aaa4:	f3bf 8f5b 	dmb	ish
  800aaa8:	4770      	bx	lr
  800aaaa:	bf00      	nop
- 800aaac:	20000a3c 	.word	0x20000a3c
+ 800aaac:	20000230 	.word	0x20000230
 
 0800aab0 <_ZSt19__throw_logic_errorPKc>:
  800aab0:	b508      	push	{r3, lr}
@@ -29135,7 +29139,7 @@ Infinite_Loop:
  800ac06:	e7c7      	b.n	800ab98 <_free_r+0x24>
  800ac08:	bd38      	pop	{r3, r4, r5, pc}
  800ac0a:	bf00      	nop
- 800ac0c:	20000a40 	.word	0x20000a40
+ 800ac0c:	20000234 	.word	0x20000234
 
 0800ac10 <_malloc_r>:
  800ac10:	b570      	push	{r4, r5, r6, lr}
@@ -29214,8 +29218,8 @@ Infinite_Loop:
  800acb6:	d0cf      	beq.n	800ac58 <_malloc_r+0x48>
  800acb8:	6025      	str	r5, [r4, #0]
  800acba:	e7db      	b.n	800ac74 <_malloc_r+0x64>
- 800acbc:	20000a40 	.word	0x20000a40
- 800acc0:	20000a44 	.word	0x20000a44
+ 800acbc:	20000234 	.word	0x20000234
+ 800acc0:	20000238 	.word	0x20000238
 
 0800acc4 <_sbrk_r>:
  800acc4:	b538      	push	{r3, r4, r5, lr}
@@ -29371,9 +29375,9 @@ Infinite_Loop:
  800ae1e:	d0ba      	beq.n	800ad96 <__register_exitproc+0x2a>
  800ae20:	e7cb      	b.n	800adba <__register_exitproc+0x4e>
  800ae22:	bf00      	nop
- 800ae24:	20000ad4 	.word	0x20000ad4
+ 800ae24:	200002c8 	.word	0x200002c8
  800ae28:	00000000 	.word	0x00000000
- 800ae2c:	20000a48 	.word	0x20000a48
+ 800ae2c:	2000023c 	.word	0x2000023c
  800ae30:	0800ab2d 	.word	0x0800ab2d
 
 0800ae34 <__malloc_lock>:

@@ -66,7 +66,7 @@
 #define USB_RX_AVAIL	1
 #define USB_RX_EMPTY	0
 #define USB_BUFFER_SIZE		2048
-struct __usbbuf{
+struct _USB_BUFFER{
 	union __databuff{
 		uint8_t		byte[USB_BUFFER_SIZE];     ///< byte access within dataBuffer
 		uint16_t    word[USB_BUFFER_SIZE/2];   ///< word access within dataBuffer
@@ -75,7 +75,7 @@ struct __usbbuf{
 	uint16_t	head;
 	uint8_t		status;
 	uint32_t	packets;
-} usbbuf;
+};
 /* USER CODE END EXPORTED_TYPES */
 
 /**

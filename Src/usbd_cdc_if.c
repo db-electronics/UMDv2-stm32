@@ -99,7 +99,6 @@
 //uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
 
 /* USER CODE BEGIN PRIVATE_VARIABLES */
-
 /* USER CODE END PRIVATE_VARIABLES */
 
 /**
@@ -114,7 +113,7 @@
 extern USBD_HandleTypeDef hUsbDeviceFS;
 
 /* USER CODE BEGIN EXPORTED_VARIABLES */
-
+struct _USB_BUFFER usbbuf;
 /* USER CODE END EXPORTED_VARIABLES */
 
 /**
