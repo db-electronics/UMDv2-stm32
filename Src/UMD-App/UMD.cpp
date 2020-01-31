@@ -113,7 +113,21 @@ void UMD::sendUSB(string str){
  *
  **********************************************************************/
 void UMD::sendUSB(uint8_t* buf, uint16_t size){
-	CDC_Transmit_FS( buf, size );
+	CDC_Transmit_FS(buf, size);
+}
+
+/*******************************************************************//**
+ *
+ **********************************************************************/
+uint16_t UMD::receiveUSB(uint8_t* buf, uint16_t size){
+	uint16_t data;
+	data = CDC_ReadBuffer(buf, size);
+	return data;
+}
+
+
+void UMD::vsel(void){
+
 }
 
 /*******************************************************************//**

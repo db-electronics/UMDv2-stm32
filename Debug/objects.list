@@ -39,7 +39,6 @@
 "Src/UMD-App/Cartridges/Cartridge.o"
 "Src/UMD-App/UMD.o"
 "Src/UMD-App/cartfactory.o"
-"Src/UMD-App/cli.o"
 "Src/adc.o"
 "Src/bsp_driver_sd.o"
 "Src/crc.o"

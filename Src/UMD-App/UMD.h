@@ -52,6 +52,7 @@ private:
 	// USB transmit methods
 	void sendUSB(string);
 	void sendUSB(uint8_t* buf, uint16_t size);
+	uint16_t receiveUSB(uint8_t* buf, uint16_t size);
 
 	// LED methods
 	void setLEDs(uint8_t LEDs);

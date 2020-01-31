@@ -338,6 +338,23 @@ uint8_t CDC_ReadBuffer_Byte(void){
 	return data;
 }
 
+uint16_t CDC_ReadBuffer(uint8_t *buf, uint16_t len){
+
+	uint16_t count = 0;
+
+	// ensure we don't overrun the buffer
+	while( usbbuf.head != usbbuf.tail ){
+		*(buf++) = usbbuf.data.byte[usbbuf.head++];
+		// return if all requested bytes were read
+		if( count++ == len ){
+			return count;
+		}
+	}
+	// return early if no more bytes are available
+	usbbuf.status = USB_RX_EMPTY;
+	return count;
+}
+
 
 /* USER CODE END PRIVATE_FUNCTIONS_IMPLEMENTATION */
 
