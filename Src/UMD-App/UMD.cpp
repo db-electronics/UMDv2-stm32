@@ -71,7 +71,7 @@ void UMD::init(void){
  **********************************************************************/
 void UMD::run(void){
 
-	SerialCommand cli();
+	SerialCommand cli;
 	std::string str = "UMDv2 running...\n\r";
 	init();
 
@@ -80,8 +80,11 @@ void UMD::run(void){
 	set_cartridge_type(0);
 
 	cart->init();
-	//uint8_t byte = cart->readByte(0x12345678);
-	//byte++;
+
+	//register callbacks for SerialCommand related to the cartridge
+	cli.addDefaultHandler(cmd_unknown);
+	cli.addCommand("flash", cmd_thunder);
+
 
 	while(1){
 		HAL_Delay(500);
@@ -143,6 +146,24 @@ void UMD::vcart_select(cartv_typ voltage){
 		break;
 	}
 }
+
+/*******************************************************************//**
+ *
+ **********************************************************************/
+void UMD::cmd_unknown(const char * cmd){
+	std::string str = "UMD error: unrecognized command\n\r";
+	send_usb(str);
+}
+
+/*******************************************************************//**
+ *
+ **********************************************************************/
+void UMD::cmd_thunder(void){
+	std::string str = "thunder\n\r";
+	send_usb(str);
+}
+
+
 
 /*******************************************************************//**
  *

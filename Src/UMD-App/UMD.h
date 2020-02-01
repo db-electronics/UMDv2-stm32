@@ -44,6 +44,10 @@ public:
 	// run is the only method visible from main.cpp, it never returns
 	void run(void);
 
+	// cli interface
+	static void cmd_thunder(void);
+	static void cmd_unknown(const char * cmd);
+
 private:
 
 	// pointer to cartridge objects
@@ -54,8 +58,8 @@ private:
 	void set_cartridge_type(uint8_t mode);
 
 	// USB methods
-	void send_usb(std::string);
-	void send_usb(uint8_t* buf, uint16_t size);
+	static void send_usb(std::string);
+	static void send_usb(uint8_t* buf, uint16_t size);
 	uint16_t receive_usb(uint8_t* buf, uint16_t size);
 
 	// LED methods
