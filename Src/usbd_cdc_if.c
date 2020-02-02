@@ -325,7 +325,7 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
 }
 
 /* USER CODE BEGIN PRIVATE_FUNCTIONS_IMPLEMENTATION */
-uint8_t CDC_ReadBuffer_Byte(void){
+uint8_t CDC_ReadBuffer_Single(void){
 
 	uint8_t data;
 
@@ -356,9 +356,13 @@ uint16_t CDC_ReadBuffer(uint8_t *buf, uint16_t len){
 	return count;
 }
 
-uint16_t CDC_Availble(void){
+uint16_t CDC_BytesAvailable(void){
 
 	return ( usbbuf.ip - usbbuf.op ) & USB_BUFFER_SIZE;
+}
+
+uint8_t CDC_PeakLast(void){
+	return usbbuf.data.byte[(usbbuf.ip - 1) & USB_BUFFER_SIZE];
 }
 
 

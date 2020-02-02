@@ -31,16 +31,13 @@
 #include "usb_device.h"
 #include "gpio.h"
 #include "fsmc.h"
+#include "usbd_cdc_if.h"
 
 #include "UMD.h"
 
 
 UMD::UMD(){
-
-	// say hello
-	std::string str = "UMDv2\n\r";
-	send_usb(str);
-
+	init();
 }
 
 /*******************************************************************//**
@@ -71,7 +68,6 @@ void UMD::init(void){
  **********************************************************************/
 void UMD::run(void){
 
-	SerialCommand cli;
 	std::string str = "UMDv2 running...\n\r";
 	init();
 
@@ -81,19 +77,33 @@ void UMD::run(void){
 
 	cart->init();
 
-	//register callbacks for SerialCommand related to the cartridge
-	cli.addDefaultHandler(cmd_unknown);
-	cli.addCommand("flash", cmd_thunder);
-
-
 	while(1){
-		HAL_Delay(500);
-		shiftLEDs(LED_SHIFT_DIR_LEFT);
-		HAL_Delay(500);
-		shiftLEDs(LED_SHIFT_DIR_LEFT);
-		send_usb(str);
+		// HAL_Delay(500);
+		// shiftLEDs(LED_SHIFT_DIR_LEFT);
+		// HAL_Delay(500);
+		// shiftLEDs(LED_SHIFT_DIR_LEFT);
+		// send_usb(str);
+		listen();
 	}
 }
+
+void UMD::listen(void){
+
+	if( CDC_BytesAvailable() ){
+
+		cmd_current = CDC_ReadBuffer_Single();
+		switch(cmd_current){
+		case 0x00:
+
+			break;
+		default:
+
+			send_usb(std::string("unimplemented cmd byte\n\r"));
+			break;
+		}
+	}
+}
+
 
 /*******************************************************************//**
  *
@@ -146,23 +156,6 @@ void UMD::vcart_select(cartv_typ voltage){
 		break;
 	}
 }
-
-/*******************************************************************//**
- *
- **********************************************************************/
-void UMD::cmd_unknown(const char * cmd){
-	std::string str = "UMD error: unrecognized command\n\r";
-	send_usb(str);
-}
-
-/*******************************************************************//**
- *
- **********************************************************************/
-void UMD::cmd_thunder(void){
-	std::string str = "thunder\n\r";
-	send_usb(str);
-}
-
 
 
 /*******************************************************************//**

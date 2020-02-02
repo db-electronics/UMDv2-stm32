@@ -30,11 +30,11 @@
 #include "usbd_cdc_if.h"
 #include "cartfactory.h"
 #include "Cartridges/Cartridge.h"
-#include "cli.h"
 
-#define LED_SHIFT_DIR_LEFT	0
-#define LED_SHIFT_DIR_RIGHT 1
+#define LED_SHIFT_DIR_LEFT		0
+#define LED_SHIFT_DIR_RIGHT 	1
 
+#define CMD_MAX_LEN				32
 
 class UMD{
 
@@ -44,22 +44,25 @@ public:
 	// run is the only method visible from main.cpp, it never returns
 	void run(void);
 
-	// cli interface
-	static void cmd_thunder(void);
-	static void cmd_unknown(const char * cmd);
+
 
 private:
 
 	// pointer to cartridge objects
 	Cartridge *cart;
 
+	// listen for commands
+	uint8_t cmd_current;
+	void clr_cmd_buffer(void);
+	void listen(void);
+
 	// initializers
 	void init(void);
 	void set_cartridge_type(uint8_t mode);
 
 	// USB methods
-	static void send_usb(std::string);
-	static void send_usb(uint8_t* buf, uint16_t size);
+	void send_usb(std::string);
+	void send_usb(uint8_t* buf, uint16_t size);
 	uint16_t receive_usb(uint8_t* buf, uint16_t size);
 
 	// LED methods
@@ -69,6 +72,7 @@ private:
 	// Cartridge Voltage
 	typedef enum {vcart_off, vcart_3v3, vcart_5v}cartv_typ;
 	void vcart_select(cartv_typ voltage);
+
 
 };
 
