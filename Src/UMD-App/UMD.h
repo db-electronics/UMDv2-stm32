@@ -34,7 +34,15 @@
 #define LED_SHIFT_DIR_LEFT		0
 #define LED_SHIFT_DIR_RIGHT 	1
 
+#define UMD_OUTPUT_ENABLE		0
+#define UMD_OUTPUT_DISABLE		1
+
 #define CMD_MAX_LEN				32
+
+#define CE0_ADRESS		       	0x60000000U
+#define CE1_ADRESS     		  	0x64000000U
+#define CE2_ADRESS       		0x68000000U
+#define CE3_ADRESS       		0x6C000000U
 
 class UMD{
 
@@ -44,12 +52,13 @@ public:
 	// run is the only method visible from main.cpp, it never returns
 	void run(void);
 
-
-
 private:
 
 	// pointer to cartridge objects
 	Cartridge *cart;
+
+	// FMSC memory pointers
+	__IO uint8_t * ce0_8b_ptr = (uint8_t *)(CE0_ADRESS);
 
 	// listen for commands
 	uint8_t cmd_current;
@@ -69,10 +78,11 @@ private:
 	void setLEDs(uint8_t LEDs);
 	void shiftLEDs(uint8_t dir);
 
-	// Cartridge Voltage
+	// Cartridge Methods
 	typedef enum {vcart_off, vcart_3v3, vcart_5v}cartv_typ;
 	void vcart_select(cartv_typ voltage);
-
+	void enable_output_translators(void);
+	void disable_output_translators(void);
 
 };
 
