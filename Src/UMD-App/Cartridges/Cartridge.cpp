@@ -23,8 +23,6 @@
 #include "Cartridge.h"
 #include "fsmc.h"
 
-using namespace std;
-
 
 Cartridge::Cartridge() {
 	// TODO Auto-generated constructor stub

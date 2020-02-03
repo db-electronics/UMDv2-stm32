@@ -75,12 +75,12 @@ private:
 	uint16_t receive_usb(uint8_t* buf, uint16_t size);
 
 	// LED methods
-	void setLEDs(uint8_t LEDs);
-	void shiftLEDs(uint8_t dir);
+	void set_leds(uint8_t LEDs);
+	void shift_leds(uint8_t dir);
 
 	// Cartridge Methods
-	typedef enum {vcart_off, vcart_3v3, vcart_5v}cartv_typ;
-	void vcart_select(cartv_typ voltage);
+	typedef enum {vcart_off=0, vcart_3v3, vcart_5v} cartv_typ;
+	void set_cartridge_voltage(cartv_typ voltage);
 	void enable_output_translators(void);
 	void disable_output_translators(void);
 

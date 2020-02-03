@@ -36,6 +36,9 @@
 #include "UMD.h"
 
 
+/*******************************************************************//**
+ *
+ **********************************************************************/
 UMD::UMD(){
 
 }
@@ -46,34 +49,31 @@ UMD::UMD(){
 void UMD::init(void){
 
 	int i;
-	uint8_t read_data;
+	//uint8_t read_data;
 
-	std::string str = "UMDv2 initializing...\n\r";
-	send_usb(str);
+	// std::string str = "UMDv2 initializing...\n\r";
+	send_usb(std::string("UMDv2 initializing...\n\r"));
+	// HAL_USART_Transmit();
 
 	// turn off cartridge voltage source
-	vcart_select(vcart_off);
+	set_cartridge_voltage(vcart_off);
 
 	// can write directly to the FMSC memory space
 	/* NOR memory device read/write start address */
-	read_data = *(__IO uint8_t *)ce0_8b_ptr;
+	// read_data = *(__IO uint8_t *)ce0_8b_ptr;e
 
 	// configure outputs
-	// NOR_HandleTypeDef hnor1;
-	// SRAM_HandleTypeDef hsram2;
-	// NOR_HandleTypeDef hnor3;
-	// SRAM_HandleTypeDef hsram4;
 	disable_output_translators();
 	HAL_GPIO_WritePin(BOOT_EN_GPIO_Port, BOOT_EN_Pin, GPIO_PIN_RESET);
 
 	// flash to show we're alive
 	for(i=0;i<4;i++){
-		setLEDs(0x05);
+		set_leds(0x05);
 		HAL_Delay(250);
-		setLEDs(0x0A);
+		set_leds(0x0A);
 		HAL_Delay(250);
 	}
-	setLEDs(0x00);
+	set_leds(0x00);
 }
 
 /*******************************************************************//**
@@ -100,17 +100,41 @@ void UMD::run(void){
 	}
 }
 
+/*******************************************************************//**
+ *
+ **********************************************************************/
 void UMD::listen(void){
+
+	uint8_t data;
 
 	if( CDC_BytesAvailable() ){
 
 		cmd_current = CDC_ReadBuffer_Single();
 		switch(cmd_current){
-		case 0x00:
 
+		// COMMAND 0x01 - ID
+		case 0x01:
+			send_usb(std::string("UMDv2\n\r"));
 			break;
-		default:
 
+		// COMMAND 0x02 - SET LEDs
+		case 0x02:
+			// next byte contains the LED value
+			while(CDC_BytesAvailable() == 0);
+			data = CDC_ReadBuffer_Single();
+			set_leds(data);
+			break;
+
+		// COMMAND 0x03 - SET CARTRIDGE VOLTAGE
+		case 0x03:
+			// next byte contains the voltage value
+			while(CDC_BytesAvailable() == 0);
+			data = CDC_ReadBuffer_Single();
+			set_cartridge_voltage(static_cast<cartv_typ>(data));
+			break;
+
+		// DEFAULT REPLY
+		default:
 			send_usb(std::string("unimplemented cmd byte\n\r"));
 			break;
 		}
@@ -149,11 +173,17 @@ uint16_t UMD::receive_usb(uint8_t* buf, uint16_t size){
 	return data;
 }
 
+/*******************************************************************//**
+ *
+ **********************************************************************/
 void UMD::enable_output_translators(void){
 	HAL_GPIO_WritePin(nOUT_EN0_GPIO_Port, nOUT_EN0_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(nOUT_EN1_GPIO_Port, nOUT_EN1_Pin, GPIO_PIN_RESET);
 }
 
+/*******************************************************************//**
+ *
+ **********************************************************************/
 void UMD::disable_output_translators(void){
 	HAL_GPIO_WritePin(nOUT_EN0_GPIO_Port, nOUT_EN0_Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(nOUT_EN1_GPIO_Port, nOUT_EN1_Pin, GPIO_PIN_SET);
@@ -162,7 +192,7 @@ void UMD::disable_output_translators(void){
 /*******************************************************************//**
  *
  **********************************************************************/
-void UMD::vcart_select(cartv_typ voltage){
+void UMD::set_cartridge_voltage(cartv_typ voltage){
 	switch(voltage){
 	case vcart_3v3:
 		HAL_GPIO_WritePin(VSEL0_GPIO_Port, VSEL0_Pin, GPIO_PIN_RESET);
@@ -184,7 +214,7 @@ void UMD::vcart_select(cartv_typ voltage){
 /*******************************************************************//**
  *
  **********************************************************************/
-void UMD::setLEDs(uint8_t LEDs){
+void UMD::set_leds(uint8_t LEDs){
 
 	(LEDs & 0x01) ? HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, GPIO_PIN_SET) : HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, GPIO_PIN_RESET);
 	(LEDs & 0x02) ? HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET) : HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
@@ -195,11 +225,11 @@ void UMD::setLEDs(uint8_t LEDs){
 /*******************************************************************//**
  *
  **********************************************************************/
-void UMD::shiftLEDs(uint8_t dir){
+void UMD::shift_leds(uint8_t dir){
 
 	static uint8_t state = 1;
 
-	setLEDs(state);
+	set_leds(state);
 	if(dir == LED_SHIFT_DIR_LEFT){
 		state <<= 1;
 		if( state > 8 ) state = 1;

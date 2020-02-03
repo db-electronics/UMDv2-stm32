@@ -30,6 +30,11 @@ public:
 	Cartridge();
 	virtual ~Cartridge();
 
+	// NOR_HandleTypeDef hnor1;
+	// SRAM_HandleTypeDef hsram2;
+	// NOR_HandleTypeDef hnor3;
+	// SRAM_HandleTypeDef hsram4;
+
 	//FSMC address offsets
 	#define FSMC_CE0_8BF_ADDR				0x60000000U
 	#define FSMC_CE1_8BS_ADDR				0x64000000U
