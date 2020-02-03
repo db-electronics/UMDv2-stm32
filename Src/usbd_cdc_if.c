@@ -290,9 +290,6 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 	int i;
 	uint8_t* rxbuf = Buf;
 
-	// debug
-	HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
-
 	//count total packets for application runtime
 	usbbuf.packets++;
 
@@ -375,10 +372,19 @@ uint16_t CDC_ReadBuffer(uint8_t *buf, uint16_t len){
 }
 
 uint16_t CDC_BytesAvailable(void){
+	return ( usbbuf.ip - usbbuf.op ) & USB_BUFFER_MASK;
+}
 
-	uint16_t bytes;
-	bytes = ( usbbuf.ip - usbbuf.op ) & USB_BUFFER_MASK;
-	return bytes;
+uint16_t CDC_BytesAvailableTimeout(uint32_t timeout_ms, uint16_t bytes_required){
+	uint32_t start_ms = HAL_GetTick();
+	uint16_t bytes_rx = 0;
+	while( (HAL_GetTick() - start_ms) < timeout_ms ){
+		bytes_rx = ( usbbuf.ip - usbbuf.op ) & USB_BUFFER_MASK;
+		if( bytes_rx >= bytes_required ){
+			return bytes_rx;
+		}
+	}
+	return 0;
 }
 
 uint8_t CDC_PeakLast(void){

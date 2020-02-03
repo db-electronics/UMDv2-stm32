@@ -54,6 +54,10 @@ public:
 
 private:
 
+	// main loop executes at millisecond intervals of this value
+	const uint32_t listen_interval = 100;
+	const uint32_t cmd_timeout = 250;
+
 	// pointer to cartridge objects
 	Cartridge *cart;
 
@@ -61,9 +65,10 @@ private:
 	__IO uint8_t * ce0_8b_ptr = (uint8_t *)(CE0_ADRESS);
 
 	// listen for commands
-	uint8_t cmd_current;
+	uint8_t cmd_current[2];
 	void clr_cmd_buffer(void);
 	void listen(void);
+	void ack_cmd(bool success);
 
 	// initializers
 	void init(void);

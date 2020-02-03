@@ -81,8 +81,7 @@ void UMD::init(void){
  **********************************************************************/
 void UMD::run(void){
 
-	uint8_t leds_value = 8;
-	std::string str = "UMDv2 running...\n\r";
+	uint32_t umd_millis;
 	init();
 
 	// We need a cart factory but only one, and this function is the only one that needs to update
@@ -91,11 +90,13 @@ void UMD::run(void){
 
 	cart->init();
 
+
 	while(1){
-		set_leds(leds_value);
-		if( leds_value == 8){ leds_value = 4; }else{ leds_value = 8; }
-		HAL_Delay(500);
+		umd_millis = HAL_GetTick();
 		listen();
+
+		// what a bit
+		while( (HAL_GetTick() - umd_millis) < listen_interval );
 	}
 }
 
@@ -105,15 +106,11 @@ void UMD::run(void){
 void UMD::listen(void){
 
 	uint8_t data;
-	set_leds(0x01);
 
 	if( CDC_BytesAvailable() ){
-		set_leds(0x02);
 
-		cmd_current = CDC_ReadBuffer_Single();
-		set_leds(0x03);
-
-		switch(cmd_current){
+		cmd_current[0] = CDC_ReadBuffer_Single();
+		switch(cmd_current[0]){
 
 		// COMMAND 0x01 - ID
 		case 0x01:
@@ -123,27 +120,47 @@ void UMD::listen(void){
 		// COMMAND 0x02 - SET LEDs
 		case 0x02:
 			// next byte contains the LED value
-			while(CDC_BytesAvailable() == 0);
-			data = CDC_ReadBuffer_Single();
-			set_leds(data);
+			if( CDC_BytesAvailableTimeout(cmd_timeout, 1) ){
+				data = CDC_ReadBuffer_Single();
+				set_leds(data);
+				ack_cmd(true);
+			}else{
+				ack_cmd(false);
+			}
 			break;
 
 		// COMMAND 0x03 - SET CARTRIDGE VOLTAGE
 		case 0x03:
-			// next byte contains the voltage value
-			while(CDC_BytesAvailable() == 0);
-			data = CDC_ReadBuffer_Single();
-			set_cartridge_voltage(static_cast<cartv_typ>(data));
+			// next byte contains the LED value
+			if( CDC_BytesAvailableTimeout(cmd_timeout, 1) ){
+				data = CDC_ReadBuffer_Single();
+				set_cartridge_voltage(static_cast<cartv_typ>(data));
+				ack_cmd(true);
+			}else{
+				ack_cmd(false);
+			}
 			break;
 
 		// DEFAULT REPLY
 		default:
-			send_usb(std::string("unimplemented cmd byte\n\r"));
+			ack_cmd(false);
 			break;
 		}
 	}
 }
 
+
+/*******************************************************************//**
+ *
+ **********************************************************************/
+void UMD::ack_cmd(bool success){
+	if(success){
+		cmd_current[1] = -cmd_current[0];
+	}else{
+		cmd_current[1] = 0xFF;
+	}
+	CDC_Transmit_FS(cmd_current, 2);
+}
 
 /*******************************************************************//**
  *
