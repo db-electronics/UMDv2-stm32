@@ -81,6 +81,7 @@ void UMD::init(void){
  **********************************************************************/
 void UMD::run(void){
 
+	uint8_t leds_value = 8;
 	std::string str = "UMDv2 running...\n\r";
 	init();
 
@@ -91,11 +92,9 @@ void UMD::run(void){
 	cart->init();
 
 	while(1){
-		// HAL_Delay(500);
-		// shiftLEDs(LED_SHIFT_DIR_LEFT);
-		// HAL_Delay(500);
-		// shiftLEDs(LED_SHIFT_DIR_LEFT);
-		// send_usb(str);
+		set_leds(leds_value);
+		if( leds_value == 8){ leds_value = 4; }else{ leds_value = 8; }
+		HAL_Delay(500);
 		listen();
 	}
 }
@@ -106,10 +105,14 @@ void UMD::run(void){
 void UMD::listen(void){
 
 	uint8_t data;
+	set_leds(0x01);
 
 	if( CDC_BytesAvailable() ){
+		set_leds(0x02);
 
 		cmd_current = CDC_ReadBuffer_Single();
+		set_leds(0x03);
+
 		switch(cmd_current){
 
 		// COMMAND 0x01 - ID
@@ -214,12 +217,12 @@ void UMD::set_cartridge_voltage(cartv_typ voltage){
 /*******************************************************************//**
  *
  **********************************************************************/
-void UMD::set_leds(uint8_t LEDs){
+void UMD::set_leds(uint8_t leds){
 
-	(LEDs & 0x01) ? HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, GPIO_PIN_SET) : HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, GPIO_PIN_RESET);
-	(LEDs & 0x02) ? HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET) : HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
-	(LEDs & 0x04) ? HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET) : HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
-	(LEDs & 0x08) ? HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_SET) : HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_RESET);
+	(leds & 0x01) ? HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, GPIO_PIN_SET) : HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, GPIO_PIN_RESET);
+	(leds & 0x02) ? HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET) : HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
+	(leds & 0x04) ? HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET) : HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
+	(leds & 0x08) ? HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_SET) : HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_RESET);
 }
 
 /*******************************************************************//**

@@ -66,6 +66,7 @@
 #define USB_RX_AVAIL			1
 #define USB_RX_EMPTY			0
 #define USB_BUFFER_SIZE			2048			///< must be a power of two
+#define USB_BUFFER_MASK			(USB_BUFFER_SIZE-1)
 struct _USB_BUFFER{
 	union __databuff{
 		uint8_t		byte[USB_BUFFER_SIZE];     	///< byte access within dataBuffer

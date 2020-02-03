@@ -32,7 +32,12 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-
+USBD_CDC_LineCodingTypeDef LineCoding = {
+		115200, // baud rate
+		0x00,   // stop bits: 1
+		0x00,   // parity: none
+		0x08    // number of bits: 8
+};
 /* USER CODE END PV */
 
 /** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
@@ -65,8 +70,8 @@
 /* USER CODE BEGIN PRIVATE_DEFINES */
 /* Define size for the receive and transmit buffer over CDC */
 /* It's up to user to redefine and/or remove those define */
-//#define APP_RX_DATA_SIZE  2048
-//#define APP_TX_DATA_SIZE  2048
+#define APP_RX_DATA_SIZE  256
+#define APP_TX_DATA_SIZE  256
 /* USER CODE END PRIVATE_DEFINES */
 
 /**
@@ -93,10 +98,10 @@
 /* Create buffer for reception and transmission           */
 /* It's up to user to redefine and/or remove those define */
 /** Received data over USB are stored in this buffer      */
-//uint8_t UserRxBufferFS[APP_RX_DATA_SIZE];
+uint8_t UserRxBufferFS[APP_RX_DATA_SIZE];
 
 /** Data to send over USB CDC are stored in this buffer   */
-//uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
+uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
 
 /* USER CODE BEGIN PRIVATE_VARIABLES */
 /* USER CODE END PRIVATE_VARIABLES */
@@ -164,8 +169,8 @@ static int8_t CDC_Init_FS(void)
 	usbbuf.packets = 0;
 
   /* Set Application Buffers */
-  //USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, 0);
-  //USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS);
+  USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, 0);
+  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS);
   return (USBD_OK);
   /* USER CODE END 3 */
 }
@@ -231,10 +236,20 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
   /* 6      | bDataBits  |   1   | Number Data bits (5, 6, 7, 8 or 16).          */
   /*******************************************************************************/
     case CDC_SET_LINE_CODING:
-
+    	LineCoding.bitrate    = (uint32_t)(pbuf[0] | (pbuf[1] << 8) | (pbuf[2] << 16) | (pbuf[3] << 24));
+		LineCoding.format     = pbuf[4];
+		LineCoding.paritytype = pbuf[5];
+		LineCoding.datatype   = pbuf[6];
     break;
 
     case CDC_GET_LINE_CODING:
+    	pbuf[0] = (uint8_t)(LineCoding.bitrate);
+		pbuf[1] = (uint8_t)(LineCoding.bitrate >> 8);
+		pbuf[2] = (uint8_t)(LineCoding.bitrate >> 16);
+		pbuf[3] = (uint8_t)(LineCoding.bitrate >> 24);
+		pbuf[4] = LineCoding.format;
+		pbuf[5] = LineCoding.paritytype;
+		pbuf[6] = LineCoding.datatype;
 
     break;
 
@@ -275,6 +290,9 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 	int i;
 	uint8_t* rxbuf = Buf;
 
+	// debug
+	HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
+
 	//count total packets for application runtime
 	usbbuf.packets++;
 
@@ -282,19 +300,19 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 	for(i=0; i<(*Len); i++){
 
 		//is the buffer full?
-		if( usbbuf.op == ( usbbuf.ip & USB_BUFFER_SIZE ) + 1 ){
+		if( usbbuf.op == ( usbbuf.ip & USB_BUFFER_MASK ) + 1 ){
 			usbbuf.status = USB_RX_FULL;
 		}else{
 			//copy into usbbuf byte buffer
 			usbbuf.data.byte[usbbuf.ip++] = *(rxbuf++);
 			usbbuf.status = USB_RX_AVAIL;
 			//wrap around
-			usbbuf.ip &= USB_BUFFER_SIZE;
+			usbbuf.ip &= USB_BUFFER_MASK;
 		}
 	}
 
-  //USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
-  //USBD_CDC_ReceivePacket(&hUsbDeviceFS);
+  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
+  USBD_CDC_ReceivePacket(&hUsbDeviceFS);
   return (USBD_OK);
   /* USER CODE END 6 */
 }
@@ -330,7 +348,7 @@ uint8_t CDC_ReadBuffer_Single(void){
 	uint8_t data;
 
 	data = usbbuf.data.byte[usbbuf.op++];
-	usbbuf.op &= USB_BUFFER_SIZE;
+	usbbuf.op &= USB_BUFFER_MASK;
 	if( usbbuf.op == usbbuf.ip ){
 		usbbuf.status = USB_RX_EMPTY;
 	}
@@ -345,7 +363,7 @@ uint16_t CDC_ReadBuffer(uint8_t *buf, uint16_t len){
 	while( usbbuf.op != usbbuf.ip ){
 		*(buf++) = usbbuf.data.byte[usbbuf.op++];
 		// wrap buffer
-		usbbuf.op &= USB_BUFFER_SIZE;
+		usbbuf.op &= USB_BUFFER_MASK;
 		// return if all requested bytes were read
 		if( count++ == len ){
 			return count;
@@ -358,11 +376,13 @@ uint16_t CDC_ReadBuffer(uint8_t *buf, uint16_t len){
 
 uint16_t CDC_BytesAvailable(void){
 
-	return ( usbbuf.ip - usbbuf.op ) & USB_BUFFER_SIZE;
+	uint16_t bytes;
+	bytes = ( usbbuf.ip - usbbuf.op ) & USB_BUFFER_MASK;
+	return bytes;
 }
 
 uint8_t CDC_PeakLast(void){
-	return usbbuf.data.byte[(usbbuf.ip - 1) & USB_BUFFER_SIZE];
+	return usbbuf.data.byte[(usbbuf.ip - 1) & USB_BUFFER_MASK];
 }
 
 
