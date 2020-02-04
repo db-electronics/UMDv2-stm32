@@ -39,7 +39,7 @@
 "Src/UMD-App/Cartridges/Cartridge.o"
 "Src/UMD-App/UMD.o"
 "Src/UMD-App/UMD_io.o"
-"Src/UMD-App/UMD_usb.o"
+"Src/UMD-App/USB.o"
 "Src/UMD-App/cartfactory.o"
 "Src/adc.o"
 "Src/bsp_driver_sd.o"

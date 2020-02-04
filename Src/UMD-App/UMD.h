@@ -26,10 +26,12 @@
 #include <cstdint>
 #include <string>
 
+#include "main.h"
+
+#include "USB.h"
 #include "Cartridges/Cartridge.h"
-#include "usbd_cdc_if.h"
 #include "cartfactory.h"
-#include "Cartridges/Cartridge.h"
+
 
 #define LED_SHIFT_DIR_LEFT		0
 #define LED_SHIFT_DIR_RIGHT 	1
@@ -54,34 +56,29 @@ public:
 
 private:
 
+	// initializers
+	void init(void);
+
 	// main loop executes at millisecond intervals of this value
 	const uint32_t listen_interval = 100;
 	const uint32_t cmd_timeout = 250;
 
 	// pointer to cartridge objects
 	Cartridge *cart;
+	USB usb;
 
 	// FMSC memory pointers
 	__IO uint8_t * ce0_8b_ptr = (uint8_t *)(CE0_ADRESS);
 
 	// listen for commands, data buffers for small transfer
-	uint8_t cmd_current[2];
+	uint8_t umd_command;
 	uint8_t data_buf[32];
 	void listen(void);
 	void ack_cmd(bool success);
 
-	// initializers
-	void init(void);
+
 	void set_cartridge_type(uint8_t mode);
 
-	// USB methods
-	void usb_tx(std::string);
-	void usb_tx(uint8_t* buf, uint16_t size);
-	uint8_t usb_rx(void);
-	uint16_t usb_rx(uint8_t* buf, uint16_t size);
-	uint16_t usb_available(void);
-	uint16_t usb_available(uint32_t timeout_ms, uint16_t bytes_required);
-	void usb_init_buffer(void);
 
 	// LED methods
 	void io_set_leds(uint8_t leds);

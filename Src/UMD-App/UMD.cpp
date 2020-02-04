@@ -28,10 +28,8 @@
 #include "sdio.h"
 #include "spi.h"
 #include "usart.h"
-#include "usb_device.h"
 #include "gpio.h"
 #include "fsmc.h"
-#include "usbd_cdc_if.h"
 
 #include "UMD.h"
 
@@ -108,50 +106,56 @@ void UMD::listen(void){
 
 	uint8_t data;
 
-	if( usb_available() ){
+	if( usb.available() ){
 
-		cmd_current[0] = usb_rx();
-		switch(cmd_current[0]){
+		umd_command = usb.get();
+		switch(umd_command){
 
 		// COMMAND 0x01 - ID
 		case 0x01:
-			ack_cmd(true);
-			usb_tx(std::string("UMDv2"));
+
+			//usb_tx(std::string("UMDv2"));
+			usb.put(std::string("UMD v2.0.0.0"));
+			usb.transmit();
 			break;
 
 		// COMMAND 0x02 - SET LEDs
 		case 0x02:
 			// next byte contains the LED value
-			if( usb_available(cmd_timeout, 1) ){
-				data = usb_rx();
+			if( usb.available(cmd_timeout, 1) ){
+				data = usb.get();
 				io_set_leds(data);
-				ack_cmd(true);
 			}else{
-				ack_cmd(false);
+
 			}
 			break;
 
 		// COMMAND 0x03 - SET CARTRIDGE VOLTAGE
 		case 0x03:
-			// next byte contains the LED value
-			if( usb_available(cmd_timeout, 1) ){
-				data = usb_rx();
+			// next byte contains the value
+			if( usb.available(cmd_timeout, 1) ){
+				data = usb.get();
 				set_cartridge_voltage(static_cast<cartv_typ>(data));
-				ack_cmd(true);
 			}else{
-				ack_cmd(false);
+
 			}
 			break;
 
 		// COMMAND 0x04 - GET CARTRIDGE VOLTAGE
 		case 0x04:
 			data_buf[0] = static_cast<uint8_t>(cartv);
-			ack_cmd(true);
-			usb_tx(data_buf, 1);
+			usb.put(data_buf, 1);
+			usb.transmit();
+			break;
+
+		case 0x05:
+			usb.put(adc_icart);
+			usb.transmit();
+			break;
 
 		// DEFAULT REPLY
 		default:
-			ack_cmd(false);
+
 			break;
 		}
 	}
@@ -162,13 +166,9 @@ void UMD::listen(void){
  *
  **********************************************************************/
 void UMD::ack_cmd(bool success){
-	if(success){
-		cmd_current[1] = -cmd_current[0];
-	}else{
-		cmd_current[1] = 0xFF;
-		usb_init_buffer();
-	}
-	usb_tx(cmd_current, 2);
+	// acknowledge command returns the same byte twice
+	// no ack returns the complement of the command
+
 }
 
 /*******************************************************************//**
