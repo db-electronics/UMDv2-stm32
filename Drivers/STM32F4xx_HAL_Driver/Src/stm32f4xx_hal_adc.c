@@ -1516,6 +1516,15 @@ HAL_StatusTypeDef HAL_ADC_Stop_DMA(ADC_HandleTypeDef* hadc)
   *         the configuration information for the specified ADC.
   * @retval Converted value
   */
+__weak void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(hadc);
+  /* NOTE : This function Should not be modified, when the callback is needed,
+            the HAL_ADC_ConvHalfCpltCallback could be implemented in the user file
+   */
+}
+
 uint32_t HAL_ADC_GetValue(ADC_HandleTypeDef* hadc)
 {       
   /* Return the selected ADC converted value */ 
@@ -1543,15 +1552,6 @@ __weak void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
   *         the configuration information for the specified ADC.
   * @retval None
   */
-__weak void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc)
-{
-  /* Prevent unused argument(s) compilation warning */
-  UNUSED(hadc);
-  /* NOTE : This function Should not be modified, when the callback is needed,
-            the HAL_ADC_ConvHalfCpltCallback could be implemented in the user file
-   */
-}
-
 /**
   * @brief  Analog watchdog callback in non blocking mode 
   * @param  hadc pointer to a ADC_HandleTypeDef structure that contains

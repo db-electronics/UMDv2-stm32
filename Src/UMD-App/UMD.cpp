@@ -50,9 +50,6 @@ void UMD::init(void){
 
 	int i;
 	//uint8_t read_data;
-
-	// std::string str = "UMDv2 initializing...\n\r";
-	send_usb(std::string("UMDv2 initializing...\n\r"));
 	// HAL_USART_Transmit();
 
 	// turn off cartridge voltage source
@@ -63,17 +60,17 @@ void UMD::init(void){
 	// read_data = *(__IO uint8_t *)ce0_8b_ptr;e
 
 	// configure outputs
-	disable_output_translators();
-	HAL_GPIO_WritePin(BOOT_EN_GPIO_Port, BOOT_EN_Pin, GPIO_PIN_RESET);
+	io_set_level_translators(false);
+	io_boot_precharge(false);
 
 	// flash to show we're alive
 	for(i=0;i<4;i++){
-		set_leds(0x05);
+		io_set_leds(0x05);
 		HAL_Delay(250);
-		set_leds(0x0A);
+		io_set_leds(0x0A);
 		HAL_Delay(250);
 	}
-	set_leds(0x00);
+	io_set_leds(0x00);
 }
 
 /*******************************************************************//**
@@ -90,12 +87,16 @@ void UMD::run(void){
 
 	cart->init();
 
-
 	while(1){
 		umd_millis = HAL_GetTick();
 		listen();
 
-		// what a bit
+		// check adc
+		HAL_ADC_Start(&hadc1);
+		HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
+		adc_icart = HAL_ADC_GetValue(&hadc1);
+
+		// wait a bit
 		while( (HAL_GetTick() - umd_millis) < listen_interval );
 	}
 }
@@ -107,22 +108,23 @@ void UMD::listen(void){
 
 	uint8_t data;
 
-	if( CDC_BytesAvailable() ){
+	if( usb_available() ){
 
-		cmd_current[0] = CDC_ReadBuffer_Single();
+		cmd_current[0] = usb_rx();
 		switch(cmd_current[0]){
 
 		// COMMAND 0x01 - ID
 		case 0x01:
-			send_usb(std::string("UMDv2\n\r"));
+			ack_cmd(true);
+			usb_tx(std::string("UMDv2"));
 			break;
 
 		// COMMAND 0x02 - SET LEDs
 		case 0x02:
 			// next byte contains the LED value
-			if( CDC_BytesAvailableTimeout(cmd_timeout, 1) ){
-				data = CDC_ReadBuffer_Single();
-				set_leds(data);
+			if( usb_available(cmd_timeout, 1) ){
+				data = usb_rx();
+				io_set_leds(data);
 				ack_cmd(true);
 			}else{
 				ack_cmd(false);
@@ -132,14 +134,20 @@ void UMD::listen(void){
 		// COMMAND 0x03 - SET CARTRIDGE VOLTAGE
 		case 0x03:
 			// next byte contains the LED value
-			if( CDC_BytesAvailableTimeout(cmd_timeout, 1) ){
-				data = CDC_ReadBuffer_Single();
+			if( usb_available(cmd_timeout, 1) ){
+				data = usb_rx();
 				set_cartridge_voltage(static_cast<cartv_typ>(data));
 				ack_cmd(true);
 			}else{
 				ack_cmd(false);
 			}
 			break;
+
+		// COMMAND 0x04 - GET CARTRIDGE VOLTAGE
+		case 0x04:
+			data_buf[0] = static_cast<uint8_t>(cartv);
+			ack_cmd(true);
+			usb_tx(data_buf, 1);
 
 		// DEFAULT REPLY
 		default:
@@ -158,8 +166,9 @@ void UMD::ack_cmd(bool success){
 		cmd_current[1] = -cmd_current[0];
 	}else{
 		cmd_current[1] = 0xFF;
+		usb_init_buffer();
 	}
-	CDC_Transmit_FS(cmd_current, 2);
+	usb_tx(cmd_current, 2);
 }
 
 /*******************************************************************//**
@@ -170,44 +179,7 @@ void UMD::set_cartridge_type(uint8_t mode){
 	cart = cf.getCart(static_cast<CartFactory::Mode>(mode));
 }
 
-/*******************************************************************//**
- *
- **********************************************************************/
-void UMD::send_usb(std::string str){
-	CDC_Transmit_FS( (uint8_t*)str.c_str(), str.length() );
-}
 
-/*******************************************************************//**
- *
- **********************************************************************/
-void UMD::send_usb(uint8_t* buf, uint16_t size){
-	CDC_Transmit_FS(buf, size);
-}
-
-/*******************************************************************//**
- *
- **********************************************************************/
-uint16_t UMD::receive_usb(uint8_t* buf, uint16_t size){
-	uint16_t data;
-	data = CDC_ReadBuffer(buf, size);
-	return data;
-}
-
-/*******************************************************************//**
- *
- **********************************************************************/
-void UMD::enable_output_translators(void){
-	HAL_GPIO_WritePin(nOUT_EN0_GPIO_Port, nOUT_EN0_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(nOUT_EN1_GPIO_Port, nOUT_EN1_Pin, GPIO_PIN_RESET);
-}
-
-/*******************************************************************//**
- *
- **********************************************************************/
-void UMD::disable_output_translators(void){
-	HAL_GPIO_WritePin(nOUT_EN0_GPIO_Port, nOUT_EN0_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(nOUT_EN1_GPIO_Port, nOUT_EN1_Pin, GPIO_PIN_SET);
-}
 
 /*******************************************************************//**
  *
@@ -215,15 +187,18 @@ void UMD::disable_output_translators(void){
 void UMD::set_cartridge_voltage(cartv_typ voltage){
 	switch(voltage){
 	case vcart_3v3:
+		cartv = vcart_3v3;
 		HAL_GPIO_WritePin(VSEL0_GPIO_Port, VSEL0_Pin, GPIO_PIN_RESET);
 		HAL_GPIO_WritePin(VSEL1_GPIO_Port, VSEL1_Pin, GPIO_PIN_RESET);
 		break;
 	case vcart_5v:
+		cartv = vcart_5v;
 		HAL_GPIO_WritePin(VSEL0_GPIO_Port, VSEL0_Pin, GPIO_PIN_SET);
 		HAL_GPIO_WritePin(VSEL1_GPIO_Port, VSEL1_Pin, GPIO_PIN_RESET);
 		break;
 	case vcart_off:
 	default:
+		cartv = vcart_off;
 		HAL_GPIO_WritePin(VSEL0_GPIO_Port, VSEL0_Pin, GPIO_PIN_SET);
 		HAL_GPIO_WritePin(VSEL1_GPIO_Port, VSEL1_Pin, GPIO_PIN_SET);
 		break;
@@ -231,30 +206,4 @@ void UMD::set_cartridge_voltage(cartv_typ voltage){
 }
 
 
-/*******************************************************************//**
- *
- **********************************************************************/
-void UMD::set_leds(uint8_t leds){
 
-	(leds & 0x01) ? HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, GPIO_PIN_SET) : HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, GPIO_PIN_RESET);
-	(leds & 0x02) ? HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET) : HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
-	(leds & 0x04) ? HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET) : HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
-	(leds & 0x08) ? HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_SET) : HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_RESET);
-}
-
-/*******************************************************************//**
- *
- **********************************************************************/
-void UMD::shift_leds(uint8_t dir){
-
-	static uint8_t state = 1;
-
-	set_leds(state);
-	if(dir == LED_SHIFT_DIR_LEFT){
-		state <<= 1;
-		if( state > 8 ) state = 1;
-	}else{
-		state >>= 1;
-		if( state > 8 ) state = 8;
-	}
-}

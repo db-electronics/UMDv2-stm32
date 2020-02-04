@@ -159,15 +159,7 @@ USBD_CDC_ItfTypeDef USBD_Interface_fops_FS =
 static int8_t CDC_Init_FS(void)
 {
   /* USER CODE BEGIN 3 */
-	int i;
-	for(i=0; i<(USB_BUFFER_SIZE/2); i++){
-		usbbuf.data.word[i] = 0;
-	}
-	usbbuf.ip = 0;
-	usbbuf.op = 0;
-	usbbuf.status = USB_RX_EMPTY;
-	usbbuf.packets = 0;
-
+	CDC_InitBuffer();
   /* Set Application Buffers */
   USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, 0);
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS);
@@ -391,6 +383,16 @@ uint8_t CDC_PeakLast(void){
 	return usbbuf.data.byte[(usbbuf.ip - 1) & USB_BUFFER_MASK];
 }
 
+void CDC_InitBuffer(void){
+	int i;
+	for(i=0; i<(USB_BUFFER_SIZE/2); i++){
+		usbbuf.data.word[i] = 0;
+	}
+	usbbuf.ip = 0;
+	usbbuf.op = 0;
+	usbbuf.status = USB_RX_EMPTY;
+	usbbuf.packets = 0;
+}
 
 /* USER CODE END PRIVATE_FUNCTIONS_IMPLEMENTATION */
 

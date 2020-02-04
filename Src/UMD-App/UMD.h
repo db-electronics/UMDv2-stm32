@@ -64,9 +64,9 @@ private:
 	// FMSC memory pointers
 	__IO uint8_t * ce0_8b_ptr = (uint8_t *)(CE0_ADRESS);
 
-	// listen for commands
+	// listen for commands, data buffers for small transfer
 	uint8_t cmd_current[2];
-	void clr_cmd_buffer(void);
+	uint8_t data_buf[32];
 	void listen(void);
 	void ack_cmd(bool success);
 
@@ -75,19 +75,25 @@ private:
 	void set_cartridge_type(uint8_t mode);
 
 	// USB methods
-	void send_usb(std::string);
-	void send_usb(uint8_t* buf, uint16_t size);
-	uint16_t receive_usb(uint8_t* buf, uint16_t size);
+	void usb_tx(std::string);
+	void usb_tx(uint8_t* buf, uint16_t size);
+	uint8_t usb_rx(void);
+	uint16_t usb_rx(uint8_t* buf, uint16_t size);
+	uint16_t usb_available(void);
+	uint16_t usb_available(uint32_t timeout_ms, uint16_t bytes_required);
+	void usb_init_buffer(void);
 
 	// LED methods
-	void set_leds(uint8_t LEDs);
-	void shift_leds(uint8_t dir);
+	void io_set_leds(uint8_t leds);
+	void io_shift_leds(uint8_t dir);
 
 	// Cartridge Methods
 	typedef enum {vcart_off=0, vcart_3v3, vcart_5v} cartv_typ;
+	uint16_t adc_icart;
+	cartv_typ cartv;
 	void set_cartridge_voltage(cartv_typ voltage);
-	void enable_output_translators(void);
-	void disable_output_translators(void);
+	void io_set_level_translators(bool enable);
+	void io_boot_precharge(bool charge);
 
 };
 
