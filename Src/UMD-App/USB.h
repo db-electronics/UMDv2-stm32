@@ -10,6 +10,7 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #define CIRCULAR_BUFFER_SIZE 	2048
 #define CIRCULAR_BUFFER_MASK 	(CIRCULAR_BUFFER_SIZE-1)
@@ -26,6 +27,16 @@ public:
 		} data;
 		uint16_t	size;
 	} buffer;
+
+	union _VBUF{
+		struct _VBYTES{
+			uint8_t	lo;
+			uint8_t	hi;
+		}byte;
+		uint16_t	word;
+	};
+
+	std::vector<_VBUF> vbuf;
 
 	void transmit(void);
 	bool is_full(void);

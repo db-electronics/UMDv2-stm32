@@ -72,9 +72,11 @@ private:
 
 	// listen for commands, data buffers for small transfer
 	uint8_t umd_command;
+	uint8_t umd_timeout_response[2] = {0xFF, 0xFF};
 	uint8_t data_buf[32];
 	void listen(void);
-	void ack_cmd(bool success);
+	void cmd_put_ack(void);
+	void cmd_put_timeout(void);
 
 
 	void set_cartridge_type(uint8_t mode);

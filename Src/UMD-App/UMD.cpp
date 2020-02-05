@@ -125,8 +125,9 @@ void UMD::listen(void){
 			if( usb.available(cmd_timeout, 1) ){
 				data = usb.get();
 				io_set_leds(data);
+				cmd_put_ack();
 			}else{
-
+				cmd_put_timeout();
 			}
 			break;
 
@@ -136,15 +137,17 @@ void UMD::listen(void){
 			if( usb.available(cmd_timeout, 1) ){
 				data = usb.get();
 				set_cartridge_voltage(static_cast<cartv_typ>(data));
+				cmd_put_ack();
 			}else{
-
+				cmd_put_timeout();
 			}
 			break;
 
 		// COMMAND 0x04 - GET CARTRIDGE VOLTAGE
 		case 0x04:
-			data_buf[0] = static_cast<uint8_t>(cartv);
-			usb.put(data_buf, 1);
+			// reply with command byte followed by cartv enum
+			usb.put(umd_command);
+			usb.put(static_cast<uint8_t>(cartv));
 			usb.transmit();
 			break;
 
@@ -165,10 +168,20 @@ void UMD::listen(void){
 /*******************************************************************//**
  *
  **********************************************************************/
-void UMD::ack_cmd(bool success){
-	// acknowledge command returns the same byte twice
-	// no ack returns the complement of the command
+void UMD::cmd_put_ack(void){
+	// acknowledge by returning the command byte and its 2s complement
+	usb.put(umd_command);
+	usb.put((uint8_t)(-umd_command));
 
+}
+
+/*******************************************************************//**
+ *
+ **********************************************************************/
+void UMD::cmd_put_timeout(void){
+	// timeout by returning the command byte followed by its complement
+	usb.put(umd_command);
+	usb.put((uint8_t)(~umd_command));
 }
 
 /*******************************************************************//**
