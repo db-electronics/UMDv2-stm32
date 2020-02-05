@@ -61,6 +61,9 @@ void UMD::init(void){
 	io_set_level_translators(false);
 	io_boot_precharge(false);
 
+	// set proper CRC32 poly
+	// https://stackoverflow.com/questions/39646441/how-to-set-stm32-to-generate-standard-crc32/39683314
+
 	// flash to show we're alive
 	for(i=0;i<4;i++){
 		io_set_leds(0x05);
@@ -84,6 +87,11 @@ void UMD::run(void){
 	set_cartridge_type(0);
 
 	cart->init();
+
+	uint32_t crc_input[1] = {0x00010004};
+	uint32_t crc_result;
+	// CRC-32/MPEG-2
+	crc_result = HAL_CRC_Calculate(&hcrc, crc_input, 1);
 
 	while(1){
 		umd_millis = HAL_GetTick();
