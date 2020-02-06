@@ -27,6 +27,7 @@
 #include <string>
 
 #include "main.h"
+#include "fatfs.h"
 
 #include "USB.h"
 #include "Cartridges/Cartridge.h"
@@ -38,8 +39,6 @@
 
 #define UMD_OUTPUT_ENABLE		0
 #define UMD_OUTPUT_DISABLE		1
-
-#define CMD_MAX_LEN				32
 
 #define CE0_ADRESS		       	0x60000000U
 #define CE1_ADRESS     		  	0x64000000U
@@ -56,6 +55,17 @@ public:
 
 private:
 
+	// pointer to UMD specific objects
+	Cartridge *cart;
+	USB usb;
+
+	// pointer to HAL objects
+	FATFS SDFatFs;
+	FIL dbFile;
+
+	// FMSC memory pointers
+	__IO uint8_t * ce0_8b_ptr = (uint8_t *)(CE0_ADRESS);
+
 	// initializers
 	void init(void);
 
@@ -63,13 +73,6 @@ private:
 	const uint32_t LISTEN_INTERVAL = 100;
 	const uint32_t CMD_TIMEOUT = 100;
 	const uint32_t PAYLOAD_TIMEOUT = 200;
-
-	// pointer to cartridge objects
-	Cartridge *cart;
-	USB usb;
-
-	// FMSC memory pointers
-	__IO uint8_t * ce0_8b_ptr = (uint8_t *)(CE0_ADRESS);
 
 	// listen for commands, data buffers for small transfer
 	const uint16_t CMD_HEADER_SIZE = 8;
@@ -80,10 +83,10 @@ private:
 				uint32_t crc;
 			}lw;
 			struct{
-				uint16_t cmd;
 				uint16_t size;
-				uint16_t crc_hi;
+				uint16_t cmd;
 				uint16_t crc_lo;
+				uint16_t crc_hi;
 			}w;
 			uint8_t bytes[8];
 		}header;

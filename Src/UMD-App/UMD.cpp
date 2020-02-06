@@ -82,6 +82,9 @@ void UMD::run(void){
 	uint32_t umd_millis;
 	init();
 
+	// would be nice to have a file on the SD card that could act as a script
+	// to automate a UMD task like repetitive buring
+
 	// We need a cart factory but only one, and this function is the only one that needs to update
 	// the cart ptr.  So we can use the static keyword to keep this across calls to the function
 	set_cartridge_type(0);
@@ -126,8 +129,9 @@ void UMD::listen(void){
 			if( usb.available(PAYLOAD_TIMEOUT, cmd.payload_size) != cmd.payload_size ){
 				usb.put(CMDREPLY.PAYLOAD_TIMEOUT);
 				usb.transmit();
-				// reset usb buffer
+				// reset usb rx buffer
 				usb.flush();
+				return;
 			}
 		}
 
