@@ -79,19 +79,21 @@ private:
 	struct{
 		union{
 			struct{
-				uint32_t hdr;
+				uint32_t sof;
 				uint32_t crc;
-			}lw;
+			};
 			struct{
 				uint16_t size;
 				uint16_t cmd;
 				uint16_t crc_lo;
 				uint16_t crc_hi;
-			}w;
+			};
 			uint8_t bytes[8];
 		}header;
-		uint16_t payload_size;
 	}cmd;
+
+	uint16_t payload_size;
+	uint32_t crc_calc;
 
 	uint8_t umd_command;
 	uint8_t umd_timeout_response[2] = {0xFF, 0xFF};
@@ -104,7 +106,8 @@ private:
 	const struct{
 		uint16_t NO_ACK = 0xFFFF;
 		uint16_t ACK = 0xDBDB;
-		uint16_t PAYLOAD_TIMEOUT = 0x0000;
+		uint16_t PAYLOAD_TIMEOUT = 0xDEAD;
+		uint16_t BAD_CRC = 0xCBAD;
 	}CMDREPLY;
 
 	void set_cartridge_type(uint8_t mode);

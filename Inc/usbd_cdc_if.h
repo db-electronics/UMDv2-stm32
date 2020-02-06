@@ -124,6 +124,7 @@ uint16_t CDC_BytesAvailable(void);
 uint16_t CDC_BytesAvailableTimeout(uint32_t timeout_ms, uint16_t bytes_required);
 uint8_t CDC_ReadBuffer_Single(void);
 uint16_t CDC_ReadBuffer(uint8_t *buf, uint16_t len);
+uint16_t CDC_PeakBuffer(uint8_t *buf, uint16_t len);
 uint8_t CDC_PeakLast(void);
 void CDC_InitBuffer(void);
 /* USER CODE END EXPORTED_FUNCTIONS */

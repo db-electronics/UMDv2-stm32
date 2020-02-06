@@ -12,8 +12,8 @@
 #include <string>
 #include <vector>
 
-#define CIRCULAR_BUFFER_SIZE 	2048
-#define CIRCULAR_BUFFER_MASK 	(CIRCULAR_BUFFER_SIZE-1)
+#define UMD_BUFFER_SIZE 	2048
+#define UMD_BUFFER_MASK 	(UMD_BUFFER_SIZE-1)
 
 class USB{
 
@@ -22,11 +22,11 @@ public:
 
 	struct _USB_BUFFER{
 		union __databuff{
-			uint8_t		byte[CIRCULAR_BUFFER_SIZE];     	///< byte access within dataBuffer
-			uint16_t    word[CIRCULAR_BUFFER_SIZE/2];   	///< word access within dataBuffer
-		} data;
+			uint8_t		bytes[UMD_BUFFER_SIZE];     	///< byte access within dataBuffer
+			uint16_t    words[UMD_BUFFER_SIZE/2];   	///< word access within dataBuffer
+		}data;
 		uint16_t	size;
-	} buffer;
+	} outbuf, inbuf;
 
 	union _VBUF{
 		struct _VBYTES{
@@ -53,6 +53,7 @@ public:
 
 	uint8_t  get(void);
 	uint16_t get(uint8_t* data, uint16_t size);
+	uint16_t peak(uint8_t* data, uint16_t size);
 
 private:
 

@@ -364,6 +364,26 @@ uint16_t CDC_ReadBuffer(uint8_t *buf, uint16_t len){
 	return count;
 }
 
+uint16_t CDC_PeakBuffer(uint8_t *buf, uint16_t len){
+
+	uint16_t count = 0;
+	uint16_t pos = usbbuf.op;
+
+	// ensure we don't overrun the buffer
+	while( pos != usbbuf.ip ){
+		*(buf++) = usbbuf.data.byte[pos++];
+		// wrap buffer
+		pos &= USB_BUFFER_MASK;
+		// return if all requested bytes were read
+		if( count++ == len ){
+			return count;
+		}
+	}
+	// return early if no more bytes are available
+	usbbuf.status = USB_RX_EMPTY;
+	return count;
+}
+
 uint16_t CDC_BytesAvailable(void){
 	return ( usbbuf.ip - usbbuf.op ) & USB_BUFFER_MASK;
 }

@@ -91,11 +91,6 @@ void UMD::run(void){
 
 	cart->init();
 
-	uint32_t crc_input[1] = {0x00010004};
-	uint32_t crc_result;
-	// CRC-32/MPEG-2
-	crc_result = HAL_CRC_Calculate(&hcrc, crc_input, 1);
-
 	while(1){
 		umd_millis = HAL_GetTick();
 		listen();
@@ -120,18 +115,28 @@ void UMD::listen(void){
 	// first 2 bytes are command, next 2 bytes are the size of this packet
 	if( usb.available(CMD_TIMEOUT, CMD_HEADER_SIZE) ){
 
-		// read command and payload size
+		// read command and payload size - test value 0x08 0x00 0x03 0x04 0x4f 0x89 0x90 0x9f
+		// https://crccalc.com
 		usb.get(cmd.header.bytes, CMD_HEADER_SIZE);
-		cmd.payload_size = cmd.header.w.size - CMD_HEADER_SIZE;
+		payload_size = cmd.header.size - CMD_HEADER_SIZE;
 
-		// wait for rest of data if
-		if( cmd.payload_size ){
-			if( usb.available(PAYLOAD_TIMEOUT, cmd.payload_size) != cmd.payload_size ){
+		// wait for rest of data if payload is not 0
+		if( payload_size ){
+			if( usb.available(PAYLOAD_TIMEOUT, payload_size) != payload_size ){
 				usb.put(CMDREPLY.PAYLOAD_TIMEOUT);
 				usb.transmit();
 				// reset usb rx buffer
 				usb.flush();
 				return;
+			}
+			// command with payload, reset CRC and accumulate over command header and payload
+			__HAL_CRC_DR_RESET(&hcrc);
+		}else{
+			// 0 payload commands, only need to check the command header
+			crc_calc = HAL_CRC_Calculate(&hcrc, &cmd.header.sof, 1);
+			if( crc_calc != cmd.header.crc ){
+				usb.put(CMDREPLY.BAD_CRC);
+				usb.transmit();
 			}
 		}
 
