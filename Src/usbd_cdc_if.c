@@ -160,6 +160,7 @@ static int8_t CDC_Init_FS(void)
 {
   /* USER CODE BEGIN 3 */
 	CDC_InitBuffer();
+	usbbuf.packets = 0;
   /* Set Application Buffers */
   USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, 0);
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS);
@@ -391,7 +392,6 @@ void CDC_InitBuffer(void){
 	usbbuf.ip = 0;
 	usbbuf.op = 0;
 	usbbuf.status = USB_RX_EMPTY;
-	usbbuf.packets = 0;
 }
 
 /* USER CODE END PRIVATE_FUNCTIONS_IMPLEMENTATION */

@@ -60,8 +60,9 @@ private:
 	void init(void);
 
 	// main loop executes at millisecond intervals of this value
-	const uint32_t listen_interval = 100;
-	const uint32_t cmd_timeout = 250;
+	const uint32_t LISTEN_INTERVAL = 100;
+	const uint32_t CMD_TIMEOUT = 100;
+	const uint32_t PAYLOAD_TIMEOUT = 200;
 
 	// pointer to cartridge objects
 	Cartridge *cart;
@@ -71,6 +72,24 @@ private:
 	__IO uint8_t * ce0_8b_ptr = (uint8_t *)(CE0_ADRESS);
 
 	// listen for commands, data buffers for small transfer
+	const uint16_t CMD_HEADER_SIZE = 8;
+	struct{
+		union{
+			struct{
+				uint32_t hdr;
+				uint32_t crc;
+			}lw;
+			struct{
+				uint16_t cmd;
+				uint16_t size;
+				uint16_t crc_hi;
+				uint16_t crc_lo;
+			}w;
+			uint8_t bytes[8];
+		}header;
+		uint16_t payload_size;
+	}cmd;
+
 	uint8_t umd_command;
 	uint8_t umd_timeout_response[2] = {0xFF, 0xFF};
 	uint8_t data_buf[32];
@@ -78,6 +97,12 @@ private:
 	void cmd_put_ack(void);
 	void cmd_put_timeout(void);
 
+	// CMD REPLIES
+	const struct{
+		uint16_t NO_ACK = 0xFFFF;
+		uint16_t ACK = 0xDBDB;
+		uint16_t PAYLOAD_TIMEOUT = 0x0000;
+	}CMDREPLY;
 
 	void set_cartridge_type(uint8_t mode);
 

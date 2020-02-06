@@ -103,7 +103,7 @@ void UMD::run(void){
 		adc_icart = HAL_ADC_GetValue(&hadc1);
 
 		// wait a bit
-		while( (HAL_GetTick() - umd_millis) < listen_interval );
+		while( (HAL_GetTick() - umd_millis) < LISTEN_INTERVAL );
 	}
 }
 
@@ -114,7 +114,22 @@ void UMD::listen(void){
 
 	uint8_t data;
 
-	if( usb.available() ){
+	// first 2 bytes are command, next 2 bytes are the size of this packet
+	if( usb.available(CMD_TIMEOUT, CMD_HEADER_SIZE) ){
+
+		// read command and payload size
+		usb.get(cmd.header.bytes, CMD_HEADER_SIZE);
+		cmd.payload_size = cmd.header.w.size - CMD_HEADER_SIZE;
+
+		// wait for rest of data if
+		if( cmd.payload_size ){
+			if( usb.available(PAYLOAD_TIMEOUT, cmd.payload_size) != cmd.payload_size ){
+				usb.put(CMDREPLY.PAYLOAD_TIMEOUT);
+				usb.transmit();
+				// reset usb buffer
+				usb.flush();
+			}
+		}
 
 		umd_command = usb.get();
 		switch(umd_command){
@@ -130,7 +145,7 @@ void UMD::listen(void){
 		// COMMAND 0x02 - SET LEDs
 		case 0x02:
 			// next byte contains the LED value
-			if( usb.available(cmd_timeout, 1) ){
+			if( usb.available(CMD_TIMEOUT, 1) ){
 				data = usb.get();
 				io_set_leds(data);
 				cmd_put_ack();
@@ -142,7 +157,7 @@ void UMD::listen(void){
 		// COMMAND 0x03 - SET CARTRIDGE VOLTAGE
 		case 0x03:
 			// next byte contains the value
-			if( usb.available(cmd_timeout, 1) ){
+			if( usb.available(CMD_TIMEOUT, 1) ){
 				data = usb.get();
 				set_cartridge_voltage(static_cast<cartv_typ>(data));
 				cmd_put_ack();

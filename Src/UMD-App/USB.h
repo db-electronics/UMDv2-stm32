@@ -38,8 +38,9 @@ public:
 
 	std::vector<_VBUF> vbuf;
 
-	void transmit(void);
 	bool is_full(void);
+	void transmit(void);
+	void flush(void);
 
 	uint16_t available(void);
 	uint16_t available(uint32_t timeout_ms, uint16_t bytes_required);
