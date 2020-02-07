@@ -141,18 +141,15 @@ void UMD::listen(void){
 		}
 
 		umd_command = usb.get();
-		switch(umd_command){
+		switch(cmd.header.cmd){
 
-		// COMMAND 0x01 - ID
-		case 0x01:
-
-			//usb_tx(std::string("UMDv2"));
+		case 0x0000:
 			usb.put(std::string("UMD v2.0.0.0"));
 			usb.transmit();
 			break;
 
 		// COMMAND 0x02 - SET LEDs
-		case 0x02:
+		case 0x0001:
 			// next byte contains the LED value
 			if( usb.available(CMD_TIMEOUT, 1) ){
 				data = usb.get();

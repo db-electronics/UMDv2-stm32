@@ -102,6 +102,12 @@ private:
 	void cmd_put_ack(void);
 	void cmd_put_timeout(void);
 
+	// CMD WORDS
+	struct{
+		const uint16_t ID = 		0x0000;
+		const uint16_t SET_LEDS = 	0x0001;
+	}CMDW;
+
 	// CMD REPLIES
 	const struct{
 		uint16_t NO_ACK = 0xFFFF;

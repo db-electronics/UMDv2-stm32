@@ -26,7 +26,7 @@ public:
 			uint16_t    words[UMD_BUFFER_SIZE/2];   	///< word access within dataBuffer
 		}data;
 		uint16_t	size;
-	} outbuf, inbuf;
+	} outbuf;
 
 	union _VBUF{
 		struct _VBYTES{
