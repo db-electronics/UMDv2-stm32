@@ -45,6 +45,8 @@
 #define CE2_ADRESS       		0x68000000U
 #define CE3_ADRESS       		0x6C000000U
 
+#define UBUF_SIZE				8192
+
 class UMD{
 
 public:
@@ -92,6 +94,14 @@ private:
 		}header;
 	}cmd;
 
+	// gp data buffer
+	union _UMD_BUF{
+		uint32_t u32[UBUF_SIZE/4];
+		uint16_t u16[UBUF_SIZE/2];
+		uint8_t  u8[UBUF_SIZE];
+	}ubuf;
+
+
 	uint16_t payload_size;
 	uint32_t crc_calc;
 
@@ -103,17 +113,17 @@ private:
 	void cmd_put_timeout(void);
 
 	// CMD WORDS
-	struct{
-		const uint16_t ID = 		0x0000;
-		const uint16_t SET_LEDS = 	0x0001;
-	}CMDW;
+	static constexpr uint16_t CMD_ID = 		0x0000;
+	static constexpr uint16_t CMD_SETLEDS = 0x0001;
+
 
 	// CMD REPLIES
 	const struct{
 		uint16_t NO_ACK = 0xFFFF;
 		uint16_t ACK = 0xDBDB;
 		uint16_t PAYLOAD_TIMEOUT = 0xDEAD;
-		uint16_t BAD_CRC = 0xCBAD;
+		uint16_t CRC_ERROR = 0xCBAD;
+		uint16_t CRC_OK = 0xC000;
 	}CMDREPLY;
 
 	void set_cartridge_type(uint8_t mode);

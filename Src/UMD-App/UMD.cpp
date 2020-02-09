@@ -119,6 +119,7 @@ void UMD::listen(void){
 		// https://crccalc.com
 		usb.get(cmd.header.bytes, CMD_HEADER_SIZE);
 		payload_size = cmd.header.size - CMD_HEADER_SIZE;
+		crc_calc = HAL_CRC_Calculate(&hcrc, &cmd.header.sof, 1);
 
 		// wait for rest of data if payload is not 0
 		if( payload_size ){
@@ -129,34 +130,39 @@ void UMD::listen(void){
 				usb.flush();
 				return;
 			}
-			// command with payload, reset CRC and accumulate over command header and payload
-			__HAL_CRC_DR_RESET(&hcrc);
+			// command with payload, accumulate over payload
+			usb.get(ubuf.u8, payload_size);
+			crc_calc = HAL_CRC_Accumulate(&hcrc, ubuf.u32, payload_size>>2);
+
+		}
+
+		// compare with received CRC
+		if( crc_calc == cmd.header.crc ){
+			usb.put(CMDREPLY.CRC_OK);
+			usb.transmit();
 		}else{
-			// 0 payload commands, only need to check the command header
-			crc_calc = HAL_CRC_Calculate(&hcrc, &cmd.header.sof, 1);
-			if( crc_calc != cmd.header.crc ){
-				usb.put(CMDREPLY.BAD_CRC);
-				usb.transmit();
-			}
+			usb.put(CMDREPLY.CRC_ERROR);
+			usb.transmit();
+			return;
 		}
 
 		umd_command = usb.get();
 		switch(cmd.header.cmd){
 
-		case 0x0000:
+		case CMD_ID:
 			usb.put(std::string("UMD v2.0.0.0"));
 			usb.transmit();
 			break;
 
 		// COMMAND 0x02 - SET LEDs
-		case 0x0001:
+		case CMD_SETLEDS:
 			// next byte contains the LED value
 			if( usb.available(CMD_TIMEOUT, 1) ){
 				data = usb.get();
 				io_set_leds(data);
-				cmd_put_ack();
+				// cmd_put_ack();
 			}else{
-				cmd_put_timeout();
+				// cmd_put_timeout();
 			}
 			break;
 
@@ -166,9 +172,9 @@ void UMD::listen(void){
 			if( usb.available(CMD_TIMEOUT, 1) ){
 				data = usb.get();
 				set_cartridge_voltage(static_cast<cartv_typ>(data));
-				cmd_put_ack();
+				// cmd_put_ack();
 			}else{
-				cmd_put_timeout();
+				// cmd_put_timeout();
 			}
 			break;
 
