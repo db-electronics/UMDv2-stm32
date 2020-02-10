@@ -30,9 +30,9 @@
 
 /* USER CODE END Includes */
 
-extern NOR_HandleTypeDef hnor1;
+extern SRAM_HandleTypeDef hsram1;
 extern SRAM_HandleTypeDef hsram2;
-extern NOR_HandleTypeDef hnor3;
+extern SRAM_HandleTypeDef hsram3;
 extern SRAM_HandleTypeDef hsram4;
 
 /* USER CODE BEGIN Private defines */
@@ -40,8 +40,6 @@ extern SRAM_HandleTypeDef hsram4;
 /* USER CODE END Private defines */
 
 void MX_FSMC_Init(void);
-void HAL_NOR_MspInit(NOR_HandleTypeDef* hnor);
-void HAL_NOR_MspDeInit(NOR_HandleTypeDef* hnor);
 void HAL_SRAM_MspInit(SRAM_HandleTypeDef* hsram);
 void HAL_SRAM_MspDeInit(SRAM_HandleTypeDef* hsram);
 

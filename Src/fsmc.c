@@ -24,9 +24,9 @@
 
 /* USER CODE END 0 */
 
-NOR_HandleTypeDef hnor1;
+SRAM_HandleTypeDef hsram1;
 SRAM_HandleTypeDef hsram2;
-NOR_HandleTypeDef hnor3;
+SRAM_HandleTypeDef hsram3;
 SRAM_HandleTypeDef hsram4;
 
 /* FSMC initialization function */
@@ -35,26 +35,26 @@ void MX_FSMC_Init(void)
   FSMC_NORSRAM_TimingTypeDef Timing = {0};
   FSMC_NORSRAM_TimingTypeDef ExtTiming = {0};
 
-  /** Perform the NOR1 memory initialization sequence
+  /** Perform the SRAM1 memory initialization sequence
   */
-  hnor1.Instance = FSMC_NORSRAM_DEVICE;
-  hnor1.Extended = FSMC_NORSRAM_EXTENDED_DEVICE;
-  /* hnor1.Init */
-  hnor1.Init.NSBank = FSMC_NORSRAM_BANK1;
-  hnor1.Init.DataAddressMux = FSMC_DATA_ADDRESS_MUX_DISABLE;
-  hnor1.Init.MemoryType = FSMC_MEMORY_TYPE_NOR;
-  hnor1.Init.MemoryDataWidth = FSMC_NORSRAM_MEM_BUS_WIDTH_8;
-  hnor1.Init.BurstAccessMode = FSMC_BURST_ACCESS_MODE_DISABLE;
-  hnor1.Init.WaitSignalPolarity = FSMC_WAIT_SIGNAL_POLARITY_LOW;
-  hnor1.Init.WaitSignalActive = FSMC_WAIT_TIMING_BEFORE_WS;
-  hnor1.Init.WriteOperation = FSMC_WRITE_OPERATION_ENABLE;
-  hnor1.Init.WaitSignal = FSMC_WAIT_SIGNAL_DISABLE;
-  hnor1.Init.ExtendedMode = FSMC_EXTENDED_MODE_ENABLE;
-  hnor1.Init.AsynchronousWait = FSMC_ASYNCHRONOUS_WAIT_DISABLE;
-  hnor1.Init.WriteBurst = FSMC_WRITE_BURST_DISABLE;
-  hnor1.Init.ContinuousClock = FSMC_CONTINUOUS_CLOCK_SYNC_ONLY;
-  hnor1.Init.WriteFifo = FSMC_WRITE_FIFO_ENABLE;
-  hnor1.Init.PageSize = FSMC_PAGE_SIZE_NONE;
+  hsram1.Instance = FSMC_NORSRAM_DEVICE;
+  hsram1.Extended = FSMC_NORSRAM_EXTENDED_DEVICE;
+  /* hsram1.Init */
+  hsram1.Init.NSBank = FSMC_NORSRAM_BANK1;
+  hsram1.Init.DataAddressMux = FSMC_DATA_ADDRESS_MUX_DISABLE;
+  hsram1.Init.MemoryType = FSMC_MEMORY_TYPE_SRAM;
+  hsram1.Init.MemoryDataWidth = FSMC_NORSRAM_MEM_BUS_WIDTH_8;
+  hsram1.Init.BurstAccessMode = FSMC_BURST_ACCESS_MODE_DISABLE;
+  hsram1.Init.WaitSignalPolarity = FSMC_WAIT_SIGNAL_POLARITY_LOW;
+  hsram1.Init.WaitSignalActive = FSMC_WAIT_TIMING_BEFORE_WS;
+  hsram1.Init.WriteOperation = FSMC_WRITE_OPERATION_ENABLE;
+  hsram1.Init.WaitSignal = FSMC_WAIT_SIGNAL_DISABLE;
+  hsram1.Init.ExtendedMode = FSMC_EXTENDED_MODE_ENABLE;
+  hsram1.Init.AsynchronousWait = FSMC_ASYNCHRONOUS_WAIT_DISABLE;
+  hsram1.Init.WriteBurst = FSMC_WRITE_BURST_DISABLE;
+  hsram1.Init.ContinuousClock = FSMC_CONTINUOUS_CLOCK_SYNC_ONLY;
+  hsram1.Init.WriteFifo = FSMC_WRITE_FIFO_ENABLE;
+  hsram1.Init.PageSize = FSMC_PAGE_SIZE_NONE;
   /* Timing */
   Timing.AddressSetupTime = 15;
   Timing.AddressHoldTime = 15;
@@ -62,7 +62,7 @@ void MX_FSMC_Init(void)
   Timing.BusTurnAroundDuration = 15;
   Timing.CLKDivision = 16;
   Timing.DataLatency = 17;
-  Timing.AccessMode = FSMC_ACCESS_MODE_B;
+  Timing.AccessMode = FSMC_ACCESS_MODE_A;
   /* ExtTiming */
   ExtTiming.AddressSetupTime = 15;
   ExtTiming.AddressHoldTime = 15;
@@ -70,9 +70,9 @@ void MX_FSMC_Init(void)
   ExtTiming.BusTurnAroundDuration = 15;
   ExtTiming.CLKDivision = 16;
   ExtTiming.DataLatency = 17;
-  ExtTiming.AccessMode = FSMC_ACCESS_MODE_B;
+  ExtTiming.AccessMode = FSMC_ACCESS_MODE_A;
 
-  if (HAL_NOR_Init(&hnor1, &Timing, &ExtTiming) != HAL_OK)
+  if (HAL_SRAM_Init(&hsram1, &Timing, &ExtTiming) != HAL_OK)
   {
     Error_Handler( );
   }
@@ -119,26 +119,26 @@ void MX_FSMC_Init(void)
     Error_Handler( );
   }
 
-  /** Perform the NOR3 memory initialization sequence
+  /** Perform the SRAM3 memory initialization sequence
   */
-  hnor3.Instance = FSMC_NORSRAM_DEVICE;
-  hnor3.Extended = FSMC_NORSRAM_EXTENDED_DEVICE;
-  /* hnor3.Init */
-  hnor3.Init.NSBank = FSMC_NORSRAM_BANK3;
-  hnor3.Init.DataAddressMux = FSMC_DATA_ADDRESS_MUX_DISABLE;
-  hnor3.Init.MemoryType = FSMC_MEMORY_TYPE_NOR;
-  hnor3.Init.MemoryDataWidth = FSMC_NORSRAM_MEM_BUS_WIDTH_16;
-  hnor3.Init.BurstAccessMode = FSMC_BURST_ACCESS_MODE_DISABLE;
-  hnor3.Init.WaitSignalPolarity = FSMC_WAIT_SIGNAL_POLARITY_LOW;
-  hnor3.Init.WaitSignalActive = FSMC_WAIT_TIMING_BEFORE_WS;
-  hnor3.Init.WriteOperation = FSMC_WRITE_OPERATION_ENABLE;
-  hnor3.Init.WaitSignal = FSMC_WAIT_SIGNAL_DISABLE;
-  hnor3.Init.ExtendedMode = FSMC_EXTENDED_MODE_ENABLE;
-  hnor3.Init.AsynchronousWait = FSMC_ASYNCHRONOUS_WAIT_DISABLE;
-  hnor3.Init.WriteBurst = FSMC_WRITE_BURST_DISABLE;
-  hnor3.Init.ContinuousClock = FSMC_CONTINUOUS_CLOCK_SYNC_ONLY;
-  hnor3.Init.WriteFifo = FSMC_WRITE_FIFO_ENABLE;
-  hnor3.Init.PageSize = FSMC_PAGE_SIZE_NONE;
+  hsram3.Instance = FSMC_NORSRAM_DEVICE;
+  hsram3.Extended = FSMC_NORSRAM_EXTENDED_DEVICE;
+  /* hsram3.Init */
+  hsram3.Init.NSBank = FSMC_NORSRAM_BANK3;
+  hsram3.Init.DataAddressMux = FSMC_DATA_ADDRESS_MUX_DISABLE;
+  hsram3.Init.MemoryType = FSMC_MEMORY_TYPE_SRAM;
+  hsram3.Init.MemoryDataWidth = FSMC_NORSRAM_MEM_BUS_WIDTH_8;
+  hsram3.Init.BurstAccessMode = FSMC_BURST_ACCESS_MODE_DISABLE;
+  hsram3.Init.WaitSignalPolarity = FSMC_WAIT_SIGNAL_POLARITY_LOW;
+  hsram3.Init.WaitSignalActive = FSMC_WAIT_TIMING_BEFORE_WS;
+  hsram3.Init.WriteOperation = FSMC_WRITE_OPERATION_ENABLE;
+  hsram3.Init.WaitSignal = FSMC_WAIT_SIGNAL_DISABLE;
+  hsram3.Init.ExtendedMode = FSMC_EXTENDED_MODE_ENABLE;
+  hsram3.Init.AsynchronousWait = FSMC_ASYNCHRONOUS_WAIT_DISABLE;
+  hsram3.Init.WriteBurst = FSMC_WRITE_BURST_DISABLE;
+  hsram3.Init.ContinuousClock = FSMC_CONTINUOUS_CLOCK_SYNC_ONLY;
+  hsram3.Init.WriteFifo = FSMC_WRITE_FIFO_ENABLE;
+  hsram3.Init.PageSize = FSMC_PAGE_SIZE_NONE;
   /* Timing */
   Timing.AddressSetupTime = 15;
   Timing.AddressHoldTime = 15;
@@ -146,7 +146,7 @@ void MX_FSMC_Init(void)
   Timing.BusTurnAroundDuration = 15;
   Timing.CLKDivision = 16;
   Timing.DataLatency = 17;
-  Timing.AccessMode = FSMC_ACCESS_MODE_B;
+  Timing.AccessMode = FSMC_ACCESS_MODE_A;
   /* ExtTiming */
   ExtTiming.AddressSetupTime = 15;
   ExtTiming.AddressHoldTime = 15;
@@ -154,9 +154,9 @@ void MX_FSMC_Init(void)
   ExtTiming.BusTurnAroundDuration = 15;
   ExtTiming.CLKDivision = 16;
   ExtTiming.DataLatency = 17;
-  ExtTiming.AccessMode = FSMC_ACCESS_MODE_B;
+  ExtTiming.AccessMode = FSMC_ACCESS_MODE_A;
 
-  if (HAL_NOR_Init(&hnor3, &Timing, &ExtTiming) != HAL_OK)
+  if (HAL_SRAM_Init(&hsram3, &Timing, &ExtTiming) != HAL_OK)
   {
     Error_Handler( );
   }
@@ -323,16 +323,6 @@ static void HAL_FSMC_MspInit(void){
   /* USER CODE END FSMC_MspInit 1 */
 }
 
-void HAL_NOR_MspInit(NOR_HandleTypeDef* norHandle){
-  /* USER CODE BEGIN NOR_MspInit 0 */
-
-  /* USER CODE END NOR_MspInit 0 */
-  HAL_FSMC_MspInit();
-  /* USER CODE BEGIN NOR_MspInit 1 */
-
-  /* USER CODE END NOR_MspInit 1 */
-}
-
 void HAL_SRAM_MspInit(SRAM_HandleTypeDef* sramHandle){
   /* USER CODE BEGIN SRAM_MspInit 0 */
 
@@ -430,16 +420,6 @@ static void HAL_FSMC_MspDeInit(void){
   /* USER CODE BEGIN FSMC_MspDeInit 1 */
 
   /* USER CODE END FSMC_MspDeInit 1 */
-}
-
-void HAL_NOR_MspDeInit(NOR_HandleTypeDef* norHandle){
-  /* USER CODE BEGIN NOR_MspDeInit 0 */
-
-  /* USER CODE END NOR_MspDeInit 0 */
-  HAL_FSMC_MspDeInit();
-  /* USER CODE BEGIN NOR_MspDeInit 1 */
-
-  /* USER CODE END NOR_MspDeInit 1 */
 }
 
 void HAL_SRAM_MspDeInit(SRAM_HandleTypeDef* sramHandle){
