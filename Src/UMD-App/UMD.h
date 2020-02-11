@@ -108,9 +108,6 @@ private:
 	uint8_t umd_command;
 	uint8_t umd_timeout_response[2] = {0xFF, 0xFF};
 	uint8_t data_buf[32];
-	void listen(void);
-	void cmd_put_ack(void);
-	void cmd_put_timeout(void);
 
 	// CMD WORDS
 	static constexpr uint16_t CMD_ID = 		0x0000;
@@ -125,6 +122,10 @@ private:
 		uint16_t CRC_ERROR = 0xCBAD;
 		uint16_t CRC_OK = 0xC000;
 	}CMDREPLY;
+
+
+	void listen(void);
+	uint32_t calc_crc32mpeg2(uint32_t *data, uint32_t len);
 
 	void set_cartridge_type(uint8_t mode);
 

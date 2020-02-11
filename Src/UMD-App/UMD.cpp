@@ -82,6 +82,15 @@ void UMD::run(void){
 	uint32_t umd_millis;
 	init();
 
+	// test CRC results
+	// swapped = 0xF9 14 D5 D2
+	// regular = 0x0F 10 B2 E2
+	uint32_t crc_inputs[4] = {0x01020304, 0x02030405, 0x03040506, 0x04050607};
+
+	crc_calc = HAL_CRC_Calculate(&hcrc, crc_inputs, 4);
+
+	crc_calc = calc_crc32mpeg2(crc_inputs, 16);
+
 	// would be nice to have a file on the SD card that could act as a script
 	// to automate a UMD task like repetitive buring
 
@@ -199,24 +208,24 @@ void UMD::listen(void){
 	}
 }
 
-
 /*******************************************************************//**
  *
  **********************************************************************/
-void UMD::cmd_put_ack(void){
-	// acknowledge by returning the command byte and its 2s complement
-	usb.put(umd_command);
-	usb.put((uint8_t)(-umd_command));
+uint32_t UMD::calc_crc32mpeg2(uint32_t *data, uint32_t len){
+	uint32_t swapped, result, i;
 
-}
-
-/*******************************************************************//**
- *
- **********************************************************************/
-void UMD::cmd_put_timeout(void){
-	// timeout by returning the command byte followed by its complement
-	usb.put(umd_command);
-	usb.put((uint8_t)(~umd_command));
+	// swapping the endianness of each u32 gets the same results as pythons:
+	// from crccheck.crc import Crc32Mpeg2
+	// I figure the STM32 can reverse endianness much faster than Python can so let's do it here
+	__HAL_CRC_DR_RESET(&hcrc);
+	for( i = 0 ; i<(len>>2) ; i++){
+		swapped = ( *(data + i) & 0x000000FF ) << 24;
+		swapped |= ( *(data + i) & 0x0000FF00 ) << 8;
+		swapped |= ( *(data + i) & 0x00FF0000 ) >> 8;
+		swapped |= ( *(data + i) & 0xFF000000 ) >> 24;
+		result = HAL_CRC_Accumulate(&hcrc, &swapped, 1);
+	}
+	return result;
 }
 
 /*******************************************************************//**
