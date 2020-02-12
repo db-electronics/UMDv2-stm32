@@ -47,8 +47,11 @@ UMD::UMD(){
 void UMD::init(void){
 
 	int i;
-	//uint8_t read_data;
-	// HAL_USART_Transmit();
+
+	// We need a cart factory but only one, and this function is the only one that needs to update
+	// the cart ptr.  So we can use the static keyword to keep this across calls to the function
+	set_cartridge_type(0);
+	cart->init();
 
 	// turn off cartridge voltage source
 	set_cartridge_voltage(vcart_off);
@@ -61,8 +64,6 @@ void UMD::init(void){
 	io_set_level_translators(false);
 	io_boot_precharge(false);
 
-	// set proper CRC32 poly
-	// https://stackoverflow.com/questions/39646441/how-to-set-stm32-to-generate-standard-crc32/39683314
 
 	// flash to show we're alive
 	for(i=0;i<4;i++){
@@ -79,7 +80,8 @@ void UMD::init(void){
  **********************************************************************/
 void UMD::run(void){
 
-	uint32_t umd_millis;
+	uint32_t umd_millis, crc_calc;
+
 	init();
 
 	// test CRC results
@@ -89,16 +91,11 @@ void UMD::run(void){
 
 	crc_calc = HAL_CRC_Calculate(&hcrc, crc_inputs, 4);
 
-	crc_calc = calc_crc32mpeg2(crc_inputs, 16);
+	crc_calc = crc32mpeg2_calc(crc_inputs, 16, true);
 
 	// would be nice to have a file on the SD card that could act as a script
-	// to automate a UMD task like repetitive buring
+	// to automate a UMD task like repetitive burning
 
-	// We need a cart factory but only one, and this function is the only one that needs to update
-	// the cart ptr.  So we can use the static keyword to keep this across calls to the function
-	set_cartridge_type(0);
-
-	cart->init();
 
 	while(1){
 		umd_millis = HAL_GetTick();
@@ -120,6 +117,8 @@ void UMD::run(void){
 void UMD::listen(void){
 
 	uint8_t data;
+	uint16_t payload_size;
+	uint32_t crc_calc;
 
 	// first 2 bytes are command, next 2 bytes are the size of this packet
 	if( usb.available(CMD_TIMEOUT, CMD_HEADER_SIZE) ){
@@ -128,7 +127,7 @@ void UMD::listen(void){
 		// https://crccalc.com
 		usb.get(cmd.header.bytes, CMD_HEADER_SIZE);
 		payload_size = cmd.header.size - CMD_HEADER_SIZE;
-		crc_calc = HAL_CRC_Calculate(&hcrc, &cmd.header.sof, 1);
+		crc_calc = crc32mpeg2_calc(&cmd.header.sof, 4, true);
 
 		// wait for rest of data if payload is not 0
 		if( payload_size ){
@@ -141,7 +140,7 @@ void UMD::listen(void){
 			}
 			// command with payload, accumulate over payload
 			usb.get(ubuf.u8, payload_size);
-			crc_calc = HAL_CRC_Accumulate(&hcrc, ubuf.u32, payload_size>>2);
+			crc_calc = crc32mpeg2_calc(ubuf.u32, payload_size, false);
 
 		}
 
@@ -165,14 +164,8 @@ void UMD::listen(void){
 
 		// COMMAND 0x02 - SET LEDs
 		case CMD_SETLEDS:
-			// next byte contains the LED value
-			if( usb.available(CMD_TIMEOUT, 1) ){
-				data = usb.get();
-				io_set_leds(data);
-				// cmd_put_ack();
-			}else{
-				// cmd_put_timeout();
-			}
+			// first byte contains the LED value
+			io_set_leds(ubuf.u8[0]);
 			break;
 
 		// COMMAND 0x03 - SET CARTRIDGE VOLTAGE
@@ -206,18 +199,23 @@ void UMD::listen(void){
 			break;
 		}
 	}
+	// reset payload size
+	payload_size = 0;
 }
 
 /*******************************************************************//**
  *
  **********************************************************************/
-uint32_t UMD::calc_crc32mpeg2(uint32_t *data, uint32_t len){
+uint32_t UMD::crc32mpeg2_calc(uint32_t *data, uint32_t len, bool reset){
 	uint32_t swapped, result, i;
 
 	// swapping the endianness of each u32 gets the same results as pythons:
 	// from crccheck.crc import Crc32Mpeg2
 	// I figure the STM32 can reverse endianness much faster than Python can so let's do it here
-	__HAL_CRC_DR_RESET(&hcrc);
+	if(reset){
+		__HAL_CRC_DR_RESET(&hcrc);
+	}
+
 	for( i = 0 ; i<(len>>2) ; i++){
 		swapped = ( *(data + i) & 0x000000FF ) << 24;
 		swapped |= ( *(data + i) & 0x0000FF00 ) << 8;

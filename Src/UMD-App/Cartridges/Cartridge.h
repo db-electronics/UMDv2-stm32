@@ -43,6 +43,7 @@ public:
 
 	// cartridge methods
 	static void init();
+
 	uint8_t readByte(uint32_t address);
 
 };

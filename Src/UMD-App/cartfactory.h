@@ -1,5 +1,5 @@
 /*******************************************************************//**
- *  \file generic.h
+ *  \file cartfactory.h
  *  \author btrim
  *  \brief This program provides a serial interface over USB to the
  *         Universal Mega Dumper. 

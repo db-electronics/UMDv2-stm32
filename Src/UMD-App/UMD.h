@@ -47,29 +47,50 @@
 
 #define UBUF_SIZE				8192
 
+/*******************************************************************//**
+ * \class UMD
+ * \brief UMD application
+ **********************************************************************/
 class UMD{
 
 public:
 	UMD();
 
-	// run is the only method visible from main.cpp, it never returns
+    /*******************************************************************//**
+     * \brief the only method visible from main.cpp, it never returns
+     **********************************************************************/
 	void run(void);
 
 private:
 
-	// pointer to UMD specific objects
-	Cartridge *cart;
-	USB usb;
+	/*******************************************************************//**
+	 * \brief initialize UMD hardware and variables
+	 **********************************************************************/
+	void init(void);
 
-	// pointer to HAL objects
-	FATFS SDFatFs;
-	FIL dbFile;
+	// UMD 'global' variables
+	Cartridge *cart;		///< pointer to cartridge object
+	USB usb;				///< USB object for communications
+	FATFS SDFatFs;			///< SD Card FAT file system object
+	FIL dbFile;				///< SD Card file object
+
+	uint16_t adc_icart;		///< latest ADC reading of cartridge current
+
+	// CMD WORDS
+	static constexpr uint16_t CMD_ID = 			0x0000;
+	static constexpr uint16_t CMD_SETLEDS = 	0x0001;
+
+	// CMD REPLIES
+		const struct{
+			uint16_t NO_ACK = 0xFFFF;
+			uint16_t ACK = 0xDBDB;
+			uint16_t PAYLOAD_TIMEOUT = 0xDEAD;
+			uint16_t CRC_ERROR = 0xCBAD;
+			uint16_t CRC_OK = 0xC000;
+		}CMDREPLY;
 
 	// FMSC memory pointers
 	__IO uint8_t * ce0_8b_ptr = (uint8_t *)(CE0_ADRESS);
-
-	// initializers
-	void init(void);
 
 	// main loop executes at millisecond intervals of this value
 	const uint32_t LISTEN_INTERVAL = 100;
@@ -78,6 +99,10 @@ private:
 
 	// listen for commands, data buffers for small transfer
 	const uint16_t CMD_HEADER_SIZE = 8;
+	/*******************************************************************//**
+     * \brief cmd
+     * cmd union to properly receive commands from the PC
+     **********************************************************************/
 	struct{
 		union{
 			struct{
@@ -101,31 +126,18 @@ private:
 		uint8_t  u8[UBUF_SIZE];
 	}ubuf;
 
-
-	uint16_t payload_size;
-	uint32_t crc_calc;
-
 	uint8_t umd_command;
-	uint8_t umd_timeout_response[2] = {0xFF, 0xFF};
-	uint8_t data_buf[32];
-
-	// CMD WORDS
-	static constexpr uint16_t CMD_ID = 		0x0000;
-	static constexpr uint16_t CMD_SETLEDS = 0x0001;
-
-
-	// CMD REPLIES
-	const struct{
-		uint16_t NO_ACK = 0xFFFF;
-		uint16_t ACK = 0xDBDB;
-		uint16_t PAYLOAD_TIMEOUT = 0xDEAD;
-		uint16_t CRC_ERROR = 0xCBAD;
-		uint16_t CRC_OK = 0xC000;
-	}CMDREPLY;
-
 
 	void listen(void);
-	uint32_t calc_crc32mpeg2(uint32_t *data, uint32_t len);
+
+    /*******************************************************************//**
+     * \brief Calculate the CRC32/MPEG2 checksum
+     * \param *data pointer to little endian data
+     * \param len length in bytes of the data
+     * \param bool reset true to begin a new CRC calc, false to accumulate
+     * \return the current crc value
+     **********************************************************************/
+	uint32_t crc32mpeg2_calc(uint32_t *data, uint32_t len, bool reset);
 
 	void set_cartridge_type(uint8_t mode);
 
@@ -136,7 +148,6 @@ private:
 
 	// Cartridge Methods
 	typedef enum {vcart_off=0, vcart_3v3, vcart_5v} cartv_typ;
-	uint16_t adc_icart;
 	cartv_typ cartv;
 	void set_cartridge_voltage(cartv_typ voltage);
 	void io_set_level_translators(bool enable);
