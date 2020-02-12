@@ -50,18 +50,14 @@ void UMD::init(void){
 
 	// We need a cart factory but only one, and this function is the only one that needs to update
 	// the cart ptr.  So we can use the static keyword to keep this across calls to the function
-	set_cartridge_type(0);
+	set_cartridge_type(0); // type 0 = UNDEFINED
 	cart->init();
-
-	// turn off cartridge voltage source
-	set_cartridge_voltage(vcart_off);
 
 	// can write directly to the FMSC memory space
 	/* NOR memory device read/write start address */
 	// read_data = *(__IO uint8_t *)ce0_8b_ptr;e
 
 	// configure outputs
-	io_set_level_translators(false);
 	io_boot_precharge(false);
 
 
@@ -173,7 +169,7 @@ void UMD::listen(void){
 			// next byte contains the value
 			if( usb.available(CMD_TIMEOUT, 1) ){
 				data = usb.get();
-				set_cartridge_voltage(static_cast<cartv_typ>(data));
+				//set_cartridge_voltage(static_cast<cartv_typ>(data));
 				// cmd_put_ack();
 			}else{
 				// cmd_put_timeout();
@@ -184,7 +180,7 @@ void UMD::listen(void){
 		case 0x04:
 			// reply with command byte followed by cartv enum
 			usb.put(umd_command);
-			usb.put(static_cast<uint8_t>(cartv));
+			//usb.put(static_cast<uint8_t>(cartv));
 			usb.transmit();
 			break;
 
@@ -234,31 +230,6 @@ void UMD::set_cartridge_type(uint8_t mode){
 	cart = cf.getCart(static_cast<CartFactory::Mode>(mode));
 }
 
-
-
-/*******************************************************************//**
- *
- **********************************************************************/
-void UMD::set_cartridge_voltage(cartv_typ voltage){
-	switch(voltage){
-	case vcart_3v3:
-		cartv = vcart_3v3;
-		HAL_GPIO_WritePin(VSEL0_GPIO_Port, VSEL0_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(VSEL1_GPIO_Port, VSEL1_Pin, GPIO_PIN_RESET);
-		break;
-	case vcart_5v:
-		cartv = vcart_5v;
-		HAL_GPIO_WritePin(VSEL0_GPIO_Port, VSEL0_Pin, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(VSEL1_GPIO_Port, VSEL1_Pin, GPIO_PIN_RESET);
-		break;
-	case vcart_off:
-	default:
-		cartv = vcart_off;
-		HAL_GPIO_WritePin(VSEL0_GPIO_Port, VSEL0_Pin, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(VSEL1_GPIO_Port, VSEL1_Pin, GPIO_PIN_SET);
-		break;
-	}
-}
 
 
 

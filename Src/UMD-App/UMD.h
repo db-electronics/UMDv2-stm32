@@ -31,7 +31,7 @@
 
 #include "USB.h"
 #include "Cartridges/Cartridge.h"
-#include "cartfactory.h"
+#include "CartFactory.h"
 
 
 #define LED_SHIFT_DIR_LEFT		0
@@ -147,9 +147,6 @@ private:
 	void io_shift_leds(uint8_t dir);
 
 	// Cartridge Methods
-	typedef enum {vcart_off=0, vcart_3v3, vcart_5v} cartv_typ;
-	cartv_typ cartv;
-	void set_cartridge_voltage(cartv_typ voltage);
 	void io_set_level_translators(bool enable);
 	void io_boot_precharge(bool charge);
 

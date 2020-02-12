@@ -7,18 +7,7 @@
 
 #include "UMD.h"
 
-/*******************************************************************//**
- *
- **********************************************************************/
-void UMD::io_set_level_translators(bool enable){
-	if( enable ){
-		HAL_GPIO_WritePin(nOUT_EN0_GPIO_Port, nOUT_EN0_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(nOUT_EN1_GPIO_Port, nOUT_EN1_Pin, GPIO_PIN_RESET);
-	}else{
-		HAL_GPIO_WritePin(nOUT_EN0_GPIO_Port, nOUT_EN0_Pin, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(nOUT_EN1_GPIO_Port, nOUT_EN1_Pin, GPIO_PIN_SET);
-	}
-}
+
 
 /*******************************************************************//**
  *

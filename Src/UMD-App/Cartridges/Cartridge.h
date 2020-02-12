@@ -25,10 +25,22 @@
 
 #include <cstdint>
 
+/*******************************************************************//**
+ * \class cartridge
+ * \brief base cartridge class from which all other arts inherit
+ **********************************************************************/
 class Cartridge {
 public:
 	Cartridge();
 	virtual ~Cartridge();
+
+	// common methods
+	// Cartridge Methods
+	enum eVoltage : uint8_t {vcart_off=0, vcart_3v3, vcart_5v};
+	eVoltage vcart;
+	void set_voltage(eVoltage v);
+	void set_level_translators(bool enable);
+
 
 	// NOR_HandleTypeDef hnor1;
 	// SRAM_HandleTypeDef hsram2;
@@ -36,13 +48,13 @@ public:
 	// SRAM_HandleTypeDef hsram4;
 
 	//FSMC address offsets
-	#define FSMC_CE0_8BF_ADDR				0x60000000U
+	#define FSMC_CE0_8BS_ADDR				0x60000000U
 	#define FSMC_CE1_8BS_ADDR				0x64000000U
-	#define FSMC_CE2_16BF_ADDR				0x68000000U
+	#define FSMC_CE2_8BS_ADDR				0x68000000U
 	#define FSMC_CE3_16BS_ADDR				0x6C000000U
 
 	// cartridge methods
-	static void init();
+	virtual void init(void);
 
 	uint8_t readByte(uint32_t address);
 

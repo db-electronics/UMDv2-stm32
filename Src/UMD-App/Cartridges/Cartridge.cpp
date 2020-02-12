@@ -24,19 +24,68 @@
 #include "fsmc.h"
 
 
+/*******************************************************************//**
+ *
+ **********************************************************************/
 Cartridge::Cartridge() {
-	// TODO Auto-generated constructor stub
 
 }
 
+/*******************************************************************//**
+ *
+ **********************************************************************/
 Cartridge::~Cartridge() {
-	// TODO Auto-generated destructor stub
+
 }
 
+/*******************************************************************//**
+ *
+ **********************************************************************/
 void Cartridge::init(void){
-
+	set_voltage(vcart_off);
+	set_level_translators(false);
 }
 
+/*******************************************************************//**
+ *
+ **********************************************************************/
+void Cartridge::set_voltage(eVoltage voltage){
+	switch(voltage){
+	case vcart_3v3:
+		vcart = vcart_3v3;
+		HAL_GPIO_WritePin(VSEL0_GPIO_Port, VSEL0_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(VSEL1_GPIO_Port, VSEL1_Pin, GPIO_PIN_RESET);
+		break;
+	case vcart_5v:
+		vcart = vcart_5v;
+		HAL_GPIO_WritePin(VSEL0_GPIO_Port, VSEL0_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(VSEL1_GPIO_Port, VSEL1_Pin, GPIO_PIN_RESET);
+		break;
+	case vcart_off:
+	default:
+		vcart = vcart_off;
+		HAL_GPIO_WritePin(VSEL0_GPIO_Port, VSEL0_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(VSEL1_GPIO_Port, VSEL1_Pin, GPIO_PIN_SET);
+		break;
+	}
+}
+
+/*******************************************************************//**
+ *
+ **********************************************************************/
+void Cartridge::set_level_translators(bool enable){
+	if( enable ){
+		HAL_GPIO_WritePin(nOUT_EN0_GPIO_Port, nOUT_EN0_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(nOUT_EN1_GPIO_Port, nOUT_EN1_Pin, GPIO_PIN_RESET);
+	}else{
+		HAL_GPIO_WritePin(nOUT_EN0_GPIO_Port, nOUT_EN0_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(nOUT_EN1_GPIO_Port, nOUT_EN1_Pin, GPIO_PIN_SET);
+	}
+}
+
+/*******************************************************************//**
+ *
+ **********************************************************************/
 uint8_t Cartridge::readByte(uint32_t address){
 	uint8_t value;
 	value = *(volatile uint8_t *)(FSMC_CE1_8BS_ADDR + address);
