@@ -37,8 +37,6 @@
 #define LED_SHIFT_DIR_LEFT		0
 #define LED_SHIFT_DIR_RIGHT 	1
 
-#define UMD_OUTPUT_ENABLE		0
-#define UMD_OUTPUT_DISABLE		1
 
 #define CE0_ADRESS		       	0x60000000U
 #define CE1_ADRESS     		  	0x64000000U
@@ -69,25 +67,36 @@ private:
 	void init(void);
 
 	// UMD 'global' variables
-	Cartridge *cart;		///< pointer to cartridge object
-	USB usb;				///< USB object for communications
-	FATFS SDFatFs;			///< SD Card FAT file system object
-	FIL dbFile;				///< SD Card file object
+	Cartridge *cart;				///< pointer to cartridge object
+	USB usb;						///< USB object for communications
+	FATFS SDFatFs;					///< SD Card FAT file system object
+	FIL dbFile;						///< SD Card file object
 
-	uint16_t adc_icart;		///< latest ADC reading of cartridge current
+	struct _ADC_READINGS{
+		uint16_t current;			///< latest ADC reading of cartridge current
+		uint16_t avg;
+		uint16_t buffer[8];
+	}adc;
+
+	uint32_t pc_assigned_id;
 
 	// CMD WORDS
-	static constexpr uint16_t CMD_ID = 			0x0000;
-	static constexpr uint16_t CMD_SETLEDS = 	0x0001;
+	enum COMMANDS : uint16_t {
+		CMD_UMD = 		0x0000,		///< UMD replies with "UMD v2.0.0.0" - only command which does not ACK
+		CMD_SETID = 	0x0001,		///< assigned pc_assigned_id for multi-umd setup
+		CMD_SETLEDS = 	0x0002,
+		CMD_SETCARTV =  0x0003,
+		CMD_GETCARTV =  0x0004
+	};
 
 	// CMD REPLIES
-		const struct{
-			uint16_t NO_ACK = 0xFFFF;
-			uint16_t ACK = 0xDBDB;
-			uint16_t PAYLOAD_TIMEOUT = 0xDEAD;
-			uint16_t CRC_ERROR = 0xCBAD;
-			uint16_t CRC_OK = 0xC000;
-		}CMDREPLY;
+	const struct{
+		uint16_t ACK = 0xDBDB;
+		uint16_t NO_ACK = 0xFFFF;
+		uint16_t PAYLOAD_TIMEOUT = 0xDEAD;
+		uint16_t CRC_ERROR = 0xCBAD;
+		uint16_t CRC_OK = 0xC000;
+	}CMDREPLY;
 
 	// FMSC memory pointers
 	__IO uint8_t * ce0_8b_ptr = (uint8_t *)(CE0_ADRESS);
@@ -126,8 +135,6 @@ private:
 		uint8_t  u8[UBUF_SIZE];
 	}ubuf;
 
-	uint8_t umd_command;
-
 	void listen(void);
 
     /*******************************************************************//**
@@ -140,7 +147,6 @@ private:
 	uint32_t crc32mpeg2_calc(uint32_t *data, uint32_t len, bool reset);
 
 	void set_cartridge_type(uint8_t mode);
-
 
 	// LED methods
 	void io_set_leds(uint8_t leds);

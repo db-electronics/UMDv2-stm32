@@ -53,6 +53,9 @@ void UMD::init(void){
 	set_cartridge_type(0); // type 0 = UNDEFINED
 	cart->init();
 
+	// pc assigned id defaults to 0
+	pc_assigned_id = 0;
+
 	// can write directly to the FMSC memory space
 	/* NOR memory device read/write start address */
 	// read_data = *(__IO uint8_t *)ce0_8b_ptr;e
@@ -76,18 +79,16 @@ void UMD::init(void){
  **********************************************************************/
 void UMD::run(void){
 
-	uint32_t umd_millis, crc_calc;
+	uint32_t umd_millis;
 
 	init();
 
 	// test CRC results
 	// swapped = 0xF9 14 D5 D2
 	// regular = 0x0F 10 B2 E2
-	uint32_t crc_inputs[4] = {0x01020304, 0x02030405, 0x03040506, 0x04050607};
-
-	crc_calc = HAL_CRC_Calculate(&hcrc, crc_inputs, 4);
-
-	crc_calc = crc32mpeg2_calc(crc_inputs, 16, true);
+	// uint32_t crc_inputs[4] = {0x01020304, 0x02030405, 0x03040506, 0x04050607};
+	// uint32_t crc_calc = HAL_CRC_Calculate(&hcrc, crc_inputs, 4);
+	// crc_calc = crc32mpeg2_calc(crc_inputs, 16, true);
 
 	// would be nice to have a file on the SD card that could act as a script
 	// to automate a UMD task like repetitive burning
@@ -100,7 +101,7 @@ void UMD::run(void){
 		// check adc
 		HAL_ADC_Start(&hadc1);
 		HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
-		adc_icart = HAL_ADC_GetValue(&hadc1);
+		adc.current = HAL_ADC_GetValue(&hadc1);
 
 		// wait a bit
 		while( (HAL_GetTick() - umd_millis) < LISTEN_INTERVAL );
@@ -112,8 +113,7 @@ void UMD::run(void){
  **********************************************************************/
 void UMD::listen(void){
 
-	uint8_t data;
-	uint16_t payload_size;
+	uint16_t payload_size = 0;
 	uint32_t crc_calc;
 
 	// first 2 bytes are command, next 2 bytes are the size of this packet
@@ -137,66 +137,58 @@ void UMD::listen(void){
 			// command with payload, accumulate over payload
 			usb.get(ubuf.u8, payload_size);
 			crc_calc = crc32mpeg2_calc(ubuf.u32, payload_size, false);
-
 		}
 
 		// compare with received CRC
-		if( crc_calc == cmd.header.crc ){
-			usb.put(CMDREPLY.CRC_OK);
-			usb.transmit();
-		}else{
+		if( crc_calc != cmd.header.crc ){
+			// reply with CRC error
 			usb.put(CMDREPLY.CRC_ERROR);
-			usb.transmit();
-			return;
-		}
+		}else{
+			// decode command
+			switch(cmd.header.cmd){
+			case CMD_UMD:
+				usb.put(std::string("UMD v2.0.0.0"));
+				usb.transmit();
+				break;
 
-		umd_command = usb.get();
-		switch(cmd.header.cmd){
+			case CMD_SETID:
+				// pc assigns a unique 32bit id to this UMD
+				pc_assigned_id = ubuf.u32[0];
+				usb.put(CMDREPLY.ACK);
+				break;
 
-		case CMD_ID:
-			usb.put(std::string("UMD v2.0.0.0"));
-			usb.transmit();
-			break;
+			case CMD_SETLEDS:
+				// first byte contains the LED value
+				io_set_leds(ubuf.u8[0]);
+				usb.put(CMDREPLY.ACK);
+				break;
 
-		// COMMAND 0x02 - SET LEDs
-		case CMD_SETLEDS:
-			// first byte contains the LED value
-			io_set_leds(ubuf.u8[0]);
-			break;
+			case CMD_SETCARTV:
+				// first byte contains the voltage value
+				cart->set_voltage(static_cast<Cartridge::eVoltage>(ubuf.u8[0]));
+				usb.put(CMDREPLY.ACK);
+				break;
 
-		// COMMAND 0x03 - SET CARTRIDGE VOLTAGE
-		case 0x03:
-			// next byte contains the value
-			if( usb.available(CMD_TIMEOUT, 1) ){
-				data = usb.get();
-				//set_cartridge_voltage(static_cast<cartv_typ>(data));
-				// cmd_put_ack();
-			}else{
-				// cmd_put_timeout();
+			case CMD_GETCARTV:
+				usb.put(static_cast<uint16_t>(cart->vcart));
+				break;
+
+			// DEFAULT REPLY
+			default:
+				usb.put(CMDREPLY.NO_ACK);
+				break;
 			}
-			break;
-
-		// COMMAND 0x04 - GET CARTRIDGE VOLTAGE
-		case 0x04:
-			// reply with command byte followed by cartv enum
-			usb.put(umd_command);
-			//usb.put(static_cast<uint8_t>(cartv));
-			usb.transmit();
-			break;
-
-		case 0x05:
-			usb.put(adc_icart);
-			usb.transmit();
-			break;
-
-		// DEFAULT REPLY
-		default:
-
-			break;
 		}
+		usb.transmit();
 	}
-	// reset payload size
-	payload_size = 0;
+}
+
+/*******************************************************************//**
+ *
+ **********************************************************************/
+void UMD::set_cartridge_type(uint8_t mode){
+	static CartFactory cf;
+	cart = cf.getCart(static_cast<CartFactory::Mode>(mode));
 }
 
 /*******************************************************************//**
@@ -222,13 +214,6 @@ uint32_t UMD::crc32mpeg2_calc(uint32_t *data, uint32_t len, bool reset){
 	return result;
 }
 
-/*******************************************************************//**
- *
- **********************************************************************/
-void UMD::set_cartridge_type(uint8_t mode){
-	static CartFactory cf;
-	cart = cf.getCart(static_cast<CartFactory::Mode>(mode));
-}
 
 
 
