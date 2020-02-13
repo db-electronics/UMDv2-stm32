@@ -62,15 +62,15 @@
   */
 
 /* USER CODE BEGIN EXPORTED_TYPES */
-#define USB_RX_FULL				-1
-#define USB_RX_AVAIL			1
-#define USB_RX_EMPTY			0
-#define USB_BUFFER_SIZE			2048			///< must be a power of two
-#define USB_BUFFER_MASK			(USB_BUFFER_SIZE-1)
-struct _USB_BUFFER{
-	union __databuff{
-		uint8_t		byte[USB_BUFFER_SIZE];     	///< byte access within dataBuffer
-		uint16_t    word[USB_BUFFER_SIZE/2];   	///< word access within dataBuffer
+#define CDC_RX_FULL				-1
+#define CDC_RX_AVAIL			1
+#define CDC_RX_EMPTY			0
+#define CDC_BUFFER_SIZE			8192			///< must be a power of two
+#define CDC_BUFFER_MASK			(CDC_BUFFER_SIZE-1)
+struct _CDC_BUFFER{
+	union{
+		uint8_t		byte[CDC_BUFFER_SIZE];     	///< byte access within dataBuffer
+		uint16_t    word[CDC_BUFFER_SIZE/2];   	///< word access within dataBuffer
 	} data;
 	uint16_t	ip;
 	uint16_t	op;

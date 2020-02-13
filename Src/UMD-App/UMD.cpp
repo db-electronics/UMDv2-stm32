@@ -93,6 +93,10 @@ void UMD::run(void){
 	// would be nice to have a file on the SD card that could act as a script
 	// to automate a UMD task like repetitive burning
 
+	usb.put_header(CMDREPLY.CRC_OK);
+	usb.put(std::string("UMD v2.0.0.0"));
+	usb.transmit();
+
 
 	while(1){
 		umd_millis = HAL_GetTick();
@@ -113,60 +117,63 @@ void UMD::run(void){
  **********************************************************************/
 void UMD::listen(void){
 
-	uint16_t payload_size = 0;
 	uint32_t crc_calc;
 
 	// first 2 bytes are command, next 2 bytes are the size of this packet
 	if( usb.available(CMD_TIMEOUT, CMD_HEADER_SIZE) ){
 
-		// read command and payload size - test value 0x08 0x00 0x03 0x04 0x4f 0x89 0x90 0x9f
-		// https://crccalc.com
+		// retrieve the command header 8 bytes
 		usb.get(cmd.header.bytes, CMD_HEADER_SIZE);
-		payload_size = cmd.header.size - CMD_HEADER_SIZE;
+
 		crc_calc = crc32mpeg2_calc(&cmd.header.sof, 4, true);
 
 		// wait for rest of data if payload is not 0
-		if( payload_size ){
-			if( usb.available(PAYLOAD_TIMEOUT, payload_size) != payload_size ){
-				usb.put(CMDREPLY.PAYLOAD_TIMEOUT);
+		if( cmd.header.payload_size ){
+			if( usb.available(PAYLOAD_TIMEOUT, cmd.header.payload_size) != cmd.header.payload_size ){
+				usb.put_header(CMDREPLY.PAYLOAD_TIMEOUT);
 				usb.transmit();
 				// reset usb rx buffer
 				usb.flush();
 				return;
 			}
 			// command with payload, accumulate over payload
-			usb.get(ubuf.u8, payload_size);
-			crc_calc = crc32mpeg2_calc(ubuf.u32, payload_size, false);
+			usb.get(ubuf.u8, cmd.header.payload_size);
+			crc_calc = crc32mpeg2_calc(ubuf.u32, cmd.header.payload_size, false);
 		}
+
+		// make my life easier during debugging
+#ifdef IGNORE_CRC
+		crc_calc = cmd.header.crc;
+#endif
 
 		// compare with received CRC
 		if( crc_calc != cmd.header.crc ){
 			// reply with CRC error
-			usb.put(CMDREPLY.CRC_ERROR);
+			usb.put_header(CMDREPLY.CRC_ERROR);
 		}else{
+
+			// reply acknowledge with the command's word
+			usb.put_header(cmd.header.cmd);
+
 			// decode command
 			switch(cmd.header.cmd){
 			case CMD_UMD:
 				usb.put(std::string("UMD v2.0.0.0"));
-				usb.transmit();
 				break;
 
 			case CMD_SETID:
 				// pc assigns a unique 32bit id to this UMD
 				pc_assigned_id = ubuf.u32[0];
-				usb.put(CMDREPLY.ACK);
 				break;
 
 			case CMD_SETLEDS:
 				// first byte contains the LED value
 				io_set_leds(ubuf.u8[0]);
-				usb.put(CMDREPLY.ACK);
 				break;
 
 			case CMD_SETCARTV:
 				// first byte contains the voltage value
 				cart->set_voltage(static_cast<Cartridge::eVoltage>(ubuf.u8[0]));
-				usb.put(CMDREPLY.ACK);
 				break;
 
 			case CMD_GETCARTV:
@@ -175,10 +182,12 @@ void UMD::listen(void){
 
 			// DEFAULT REPLY
 			default:
-				usb.put(CMDREPLY.NO_ACK);
+				//override the header with NO_ACK
+				usb.put_header(CMDREPLY.NO_ACK);
 				break;
 			}
 		}
+		// transmit the queue
 		usb.transmit();
 	}
 }

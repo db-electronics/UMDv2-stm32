@@ -25,33 +25,25 @@
 
 #include <cstdint>
 #include <string>
-#include <vector>
 
-#define UMD_BUFFER_SIZE 	2048
-#define UMD_BUFFER_MASK 	(UMD_BUFFER_SIZE-1)
+#define USB_BUFFER_SIZE 	8192
 
 class USB{
 
 public:
 	USB();
 
-	struct _USB_BUFFER{
-		union __databuff{
-			uint8_t		bytes[UMD_BUFFER_SIZE];     	///< byte access within dataBuffer
-			uint16_t    words[UMD_BUFFER_SIZE/2];   	///< word access within dataBuffer
+	struct{
+		union{
+			struct{
+				uint16_t	ack;
+				uint16_t	payload_size;
+			};
+			uint8_t		bytes[USB_BUFFER_SIZE];     	///< byte access within dataBuffer
+			uint16_t    words[USB_BUFFER_SIZE/2];   	///< word access within dataBuffer
 		}data;
 		uint16_t	size;
-	} outbuf;
-
-	union _VBUF{
-		struct _VBYTES{
-			uint8_t	lo;
-			uint8_t	hi;
-		}byte;
-		uint16_t	word;
-	};
-
-	std::vector<_VBUF> vbuf;
+	} usbbuf;
 
 	bool is_full(void);
 	void transmit(void);
@@ -60,6 +52,8 @@ public:
 	uint16_t available(void);
 	uint16_t available(uint32_t timeout_ms, uint16_t bytes_required);
 
+
+	void put_header(uint16_t reply);
 	uint16_t put(std::string str);
 	uint16_t put(uint8_t byte);
 	uint16_t put(uint16_t word);

@@ -70,8 +70,8 @@ USBD_CDC_LineCodingTypeDef LineCoding = {
 /* USER CODE BEGIN PRIVATE_DEFINES */
 /* Define size for the receive and transmit buffer over CDC */
 /* It's up to user to redefine and/or remove those define */
-#define APP_RX_DATA_SIZE  256
-#define APP_TX_DATA_SIZE  256
+#define APP_RX_DATA_SIZE  512
+#define APP_TX_DATA_SIZE  512
 /* USER CODE END PRIVATE_DEFINES */
 
 /**
@@ -118,7 +118,7 @@ uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
 extern USBD_HandleTypeDef hUsbDeviceFS;
 
 /* USER CODE BEGIN EXPORTED_VARIABLES */
-struct _USB_BUFFER usbbuf;
+struct _CDC_BUFFER cdcbuf;
 /* USER CODE END EXPORTED_VARIABLES */
 
 /**
@@ -160,7 +160,7 @@ static int8_t CDC_Init_FS(void)
 {
   /* USER CODE BEGIN 3 */
 	CDC_InitBuffer();
-	usbbuf.packets = 0;
+	cdcbuf.packets = 0;
   /* Set Application Buffers */
   USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, 0);
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS);
@@ -284,20 +284,20 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 	uint8_t* rxbuf = Buf;
 
 	//count total packets for application runtime
-	usbbuf.packets++;
+	cdcbuf.packets++;
 
 	// receive the data
 	for(i=0; i<(*Len); i++){
 
 		//is the buffer full?
-		if( usbbuf.op == ( usbbuf.ip & USB_BUFFER_MASK ) + 1 ){
-			usbbuf.status = USB_RX_FULL;
+		if( cdcbuf.op == ( cdcbuf.ip & CDC_BUFFER_MASK ) + 1 ){
+			cdcbuf.status = CDC_RX_FULL;
 		}else{
 			//copy into usbbuf byte buffer
-			usbbuf.data.byte[usbbuf.ip++] = *(rxbuf++);
-			usbbuf.status = USB_RX_AVAIL;
+			cdcbuf.data.byte[cdcbuf.ip++] = *(rxbuf++);
+			cdcbuf.status = CDC_RX_AVAIL;
 			//wrap around
-			usbbuf.ip &= USB_BUFFER_MASK;
+			cdcbuf.ip &= CDC_BUFFER_MASK;
 		}
 	}
 
@@ -337,10 +337,10 @@ uint8_t CDC_ReadBuffer_Single(void){
 
 	uint8_t data;
 
-	data = usbbuf.data.byte[usbbuf.op++];
-	usbbuf.op &= USB_BUFFER_MASK;
-	if( usbbuf.op == usbbuf.ip ){
-		usbbuf.status = USB_RX_EMPTY;
+	data = cdcbuf.data.byte[cdcbuf.op++];
+	cdcbuf.op &= CDC_BUFFER_MASK;
+	if( cdcbuf.op == cdcbuf.ip ){
+		cdcbuf.status = CDC_RX_EMPTY;
 	}
 	return data;
 }
@@ -350,49 +350,49 @@ uint16_t CDC_ReadBuffer(uint8_t *buf, uint16_t len){
 	uint16_t count = 0;
 
 	// ensure we don't overrun the buffer
-	while( usbbuf.op != usbbuf.ip ){
-		*(buf++) = usbbuf.data.byte[usbbuf.op++];
+	while( cdcbuf.op != cdcbuf.ip ){
+		*(buf++) = cdcbuf.data.byte[cdcbuf.op++];
 		// wrap buffer
-		usbbuf.op &= USB_BUFFER_MASK;
+		cdcbuf.op &= CDC_BUFFER_MASK;
 		// return if all requested bytes were read
-		if( count++ == len ){
+		if( ++count == len ){
 			return count;
 		}
 	}
 	// return early if no more bytes are available
-	usbbuf.status = USB_RX_EMPTY;
+	cdcbuf.status = CDC_RX_EMPTY;
 	return count;
 }
 
 uint16_t CDC_PeakBuffer(uint8_t *buf, uint16_t len){
 
 	uint16_t count = 0;
-	uint16_t pos = usbbuf.op;
+	uint16_t pos = cdcbuf.op;
 
 	// ensure we don't overrun the buffer
-	while( pos != usbbuf.ip ){
-		*(buf++) = usbbuf.data.byte[pos++];
+	while( pos != cdcbuf.ip ){
+		*(buf++) = cdcbuf.data.byte[pos++];
 		// wrap buffer
-		pos &= USB_BUFFER_MASK;
+		pos &= CDC_BUFFER_MASK;
 		// return if all requested bytes were read
 		if( count++ == len ){
 			return count;
 		}
 	}
 	// return early if no more bytes are available
-	usbbuf.status = USB_RX_EMPTY;
+	cdcbuf.status = CDC_RX_EMPTY;
 	return count;
 }
 
 uint16_t CDC_BytesAvailable(void){
-	return ( usbbuf.ip - usbbuf.op ) & USB_BUFFER_MASK;
+	return ( cdcbuf.ip - cdcbuf.op ) & CDC_BUFFER_MASK;
 }
 
 uint16_t CDC_BytesAvailableTimeout(uint32_t timeout_ms, uint16_t bytes_required){
 	uint32_t start_ms = HAL_GetTick();
 	uint16_t bytes_rx = 0;
 	while( (HAL_GetTick() - start_ms) < timeout_ms ){
-		bytes_rx = ( usbbuf.ip - usbbuf.op ) & USB_BUFFER_MASK;
+		bytes_rx = ( cdcbuf.ip - cdcbuf.op ) & CDC_BUFFER_MASK;
 		if( bytes_rx >= bytes_required ){
 			return bytes_rx;
 		}
@@ -401,17 +401,17 @@ uint16_t CDC_BytesAvailableTimeout(uint32_t timeout_ms, uint16_t bytes_required)
 }
 
 uint8_t CDC_PeakLast(void){
-	return usbbuf.data.byte[(usbbuf.ip - 1) & USB_BUFFER_MASK];
+	return cdcbuf.data.byte[(cdcbuf.ip - 1) & CDC_BUFFER_MASK];
 }
 
 void CDC_InitBuffer(void){
 	int i;
-	for(i=0; i<(USB_BUFFER_SIZE/2); i++){
-		usbbuf.data.word[i] = 0;
+	for(i=0; i<(CDC_BUFFER_SIZE/2); i++){
+		cdcbuf.data.word[i] = 0;
 	}
-	usbbuf.ip = 0;
-	usbbuf.op = 0;
-	usbbuf.status = USB_RX_EMPTY;
+	cdcbuf.ip = 0;
+	cdcbuf.op = 0;
+	cdcbuf.status = CDC_RX_EMPTY;
 }
 
 /* USER CODE END PRIVATE_FUNCTIONS_IMPLEMENTATION */

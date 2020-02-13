@@ -43,7 +43,9 @@
 #define CE2_ADRESS       		0x68000000U
 #define CE3_ADRESS       		0x6C000000U
 
-#define UBUF_SIZE				8192
+#define UMD_BUFER_SIZE			8192
+
+#define IGNORE_CRC				1
 
 /*******************************************************************//**
  * \class UMD
@@ -91,7 +93,7 @@ private:
 
 	// CMD REPLIES
 	const struct{
-		uint16_t ACK = 0xDBDB;
+		uint16_t ACK = 0xDB12;
 		uint16_t NO_ACK = 0xFFFF;
 		uint16_t PAYLOAD_TIMEOUT = 0xDEAD;
 		uint16_t CRC_ERROR = 0xCBAD;
@@ -119,8 +121,8 @@ private:
 				uint32_t crc;
 			};
 			struct{
-				uint16_t size;
 				uint16_t cmd;
+				uint16_t payload_size;
 				uint16_t crc_lo;
 				uint16_t crc_hi;
 			};
@@ -130,9 +132,9 @@ private:
 
 	// gp data buffer
 	union _UMD_BUF{
-		uint32_t u32[UBUF_SIZE/4];
-		uint16_t u16[UBUF_SIZE/2];
-		uint8_t  u8[UBUF_SIZE];
+		uint32_t u32[UMD_BUFER_SIZE/4];
+		uint16_t u16[UMD_BUFER_SIZE/2];
+		uint8_t  u8[UMD_BUFER_SIZE];
 	}ubuf;
 
 	void listen(void);
