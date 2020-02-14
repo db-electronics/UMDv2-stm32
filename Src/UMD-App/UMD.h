@@ -25,6 +25,7 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include "main.h"
 #include "fatfs.h"
@@ -47,6 +48,7 @@
 
 #define IGNORE_CRC				1
 
+
 /*******************************************************************//**
  * \class UMD
  * \brief UMD application
@@ -61,18 +63,21 @@ public:
      **********************************************************************/
 	void run(void);
 
+
 private:
 
 	/*******************************************************************//**
 	 * \brief initialize UMD hardware and variables
 	 **********************************************************************/
 	void init(void);
+	void listen(void);
 
 	// UMD 'global' variables
 	Cartridge *cart;				///< pointer to cartridge object
 	USB usb;						///< USB object for communications
 	FATFS SDFatFs;					///< SD Card FAT file system object
 	FIL dbFile;						///< SD Card file object
+	uint32_t cmd_return_code;
 
 	struct _ADC_READINGS{
 		uint16_t current;			///< latest ADC reading of cartridge current
@@ -93,11 +98,11 @@ private:
 
 	// CMD REPLIES
 	const struct{
-		uint16_t ACK = 0xDB12;
 		uint16_t NO_ACK = 0xFFFF;
-		uint16_t PAYLOAD_TIMEOUT = 0xDEAD;
-		uint16_t CRC_ERROR = 0xCBAD;
-		uint16_t CRC_OK = 0xC000;
+		uint16_t CMD_FAILED = 0xFFFE;
+		uint16_t PAYLOAD_TIMEOUT = 0xFFFD;
+		uint16_t CRC_ERROR = 0xFFFC;
+		uint16_t CRC_OK = 0xFFFB;
 	}CMDREPLY;
 
 	// FMSC memory pointers
@@ -131,13 +136,13 @@ private:
 	}cmd;
 
 	// gp data buffer
-	union _UMD_BUF{
+	union UMD_BUF{
 		uint32_t u32[UMD_BUFER_SIZE/4];
 		uint16_t u16[UMD_BUFER_SIZE/2];
 		uint8_t  u8[UMD_BUFER_SIZE];
 	}ubuf;
 
-	void listen(void);
+
 
     /*******************************************************************//**
      * \brief Calculate the CRC32/MPEG2 checksum
@@ -158,6 +163,49 @@ private:
 	void io_set_level_translators(bool enable);
 	void io_boot_precharge(bool charge);
 
+	/* Return codes for UMD commands */
+	typedef enum{
+		UMD_CMD_OK   = 0,
+		UMD_CMD_FAIL,
+	}UMD_StatusTypedef;
+
+	// CMD Jump table
+	struct UMD_CMD{
+		uint16_t     	word;							/**< command word */
+		uint32_t		(UMD::*command)(UMD_BUF *buf) = nullptr;    /**< function pointer implementing the command */
+		std::string 	name;                           /**< command name */
+	};
+
+	UMD_CMD exec_command;
+	std::vector<UMD_CMD> cmd_table {
+		{ 0x0000, &UMD::cmd_setleds,   "set leds:     [uint32_t]" },
+		{ 0x0001, &UMD::cmd_setid,     "set id:       [uint32_t]" },
+		{ 0x0002, &UMD::cmd_version,   "get version" },
+		{ 0x0001, &UMD::cmd_getcartv,  "get cartv" },
+		{ 0x0001, &UMD::cmd_setcartv,  "set cartv:    [uint32_t]" }
+	};
+
+	// Command prototypes
+	uint32_t cmd_setleds(UMD_BUF *buf);
+	uint32_t cmd_setid(UMD_BUF *buf);
+	uint32_t cmd_version(UMD_BUF *buf);
+	uint32_t cmd_getcartv(UMD_BUF *buf);
+	uint32_t cmd_setcartv(UMD_BUF *buf);
+
+};
+
+/*******************************************************************//**
+ * \class Command
+ * \brief UMD application
+ **********************************************************************/
+class Command{
+public:
+
+	uint16_t code;
+	uint16_t payload_size;
+	uint32_t crc32;
+
+	Command(uint8_t *data);
 };
 
 #endif /* UMD_H_ */

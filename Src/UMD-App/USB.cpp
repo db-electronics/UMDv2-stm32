@@ -132,10 +132,29 @@ uint16_t USB::put(uint16_t word){
 	if( (USB_BUFFER_SIZE - usbbuf.size) < 2 ){
 		return 0;
 	}else{
-		usbbuf.data.words[usbbuf.size] = word;
-		usbbuf.size += 2;
+		// put byte a time in case we're not at an even boundary
+		usbbuf.data.bytes[usbbuf.size++] = (uint8_t)word;
+		usbbuf.data.bytes[usbbuf.size++] = (uint8_t)(word>>8);
 	}
-	return 1;
+	return 2;
+}
+
+/*******************************************************************//**
+ *
+ **********************************************************************/
+uint16_t USB::put(uint32_t lword){
+
+	// is the buffer full?
+	if( (USB_BUFFER_SIZE - usbbuf.size) < 4 ){
+		return 0;
+	}else{
+		// put byte a time in case we're not at an even boundary
+		usbbuf.data.bytes[usbbuf.size++] = (uint8_t)lword;
+		usbbuf.data.bytes[usbbuf.size++] = (uint8_t)(lword>>8);
+		usbbuf.data.bytes[usbbuf.size++] = (uint8_t)(lword>>16);
+		usbbuf.data.bytes[usbbuf.size++] = (uint8_t)(lword>>24);
+	}
+	return 4;
 }
 
 /*******************************************************************//**
@@ -173,8 +192,9 @@ uint16_t USB::put(uint16_t *data, uint16_t len){
 		return 0;
 	}else{
 		for( int i = 0; i < (len>>2) ; i++){
-			usbbuf.data.words[usbbuf.size] = *(data++);
-			usbbuf.size += 2;
+			// put byte a time in case we're not at an even boundary
+			usbbuf.data.bytes[usbbuf.size++] = (uint8_t)(*(data));
+			usbbuf.data.bytes[usbbuf.size++] = (uint8_t)((*(data++)>>8));
 		}
 	}
 	return len;

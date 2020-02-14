@@ -57,6 +57,7 @@ public:
 	uint16_t put(std::string str);
 	uint16_t put(uint8_t byte);
 	uint16_t put(uint16_t word);
+	uint16_t put(uint32_t lword);
 	uint16_t put(uint8_t *data, uint16_t len);
 	uint16_t put(uint16_t *data, uint16_t len);
 

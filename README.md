@@ -14,9 +14,16 @@ Packets sent to the UMDv2 include a CRC32/MPEG-2 checksum. This CRC was chosen s
 
 ## Send Commands / Data
 When sending commands and data to the UMDv2, this format must be followed. Note that data is interpreted in little endian.
-* 2 bytes - Command word
-* 2 bytes - Payload
+* 2 bytes - Command Word
+* 2 bytes - Payload Size
 * 4 bytes - CRC32/MPEG-2 (calculated on entire packet, but skip these 4 bytes obviously)
+* Payload (Payload size bytes)
+  * Payload can be 0 to 4K bytes
+
+## UMDv2 Replies
+The UMDv2 replies to commands in a specific structure similar to the sending format except that it omits the CRC32/MPEG-2 calculation. Receive data will follow this format:
+* 2 bytes - Command acknowledge (same 2 bytes as command which is being acknowledge, error codes are also possible)
+* 2 bytes - Payload Size
 * Payload (Payload size bytes)
   * Payload can be 0 to 4K bytes
   
@@ -31,6 +38,13 @@ This byte sequence is transmitted to the UMDv2:
   * calculated on `0x02 0x00 0x04 0x00 0x0F 0x00 0x00 0x00`
 * 0x0F 0x00 0x00 0x00 = Payload
 
+The UMDv2 will respond will the following sequence:
+```
+0x02 0x00 0x00 0x00
+```
+* 0x0002 = Command being acknowleged
+* 0x0000 - Payload size
+
 ### Example 2 - no payload
 This byte sequence is transmitted to the UMDv2:
 ```
@@ -40,3 +54,11 @@ This byte sequence is transmitted to the UMDv2:
 * 0x0000 = Payload size
 * 0x3EEE4571 = CRC32/MPEG-2
   * calculated on `0x08 0x00 0x00 0x00`
+
+The UMDv2 will respond will the following sequence:
+```
+0x08 0x00 0x00 0x00
+```
+* 0x0002 = Command being acknowleged
+* 0x0000 - Payload size
+

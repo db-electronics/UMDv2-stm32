@@ -124,6 +124,7 @@ void UMD::listen(void){
 
 		// retrieve the command header 8 bytes
 		usb.get(cmd.header.bytes, CMD_HEADER_SIZE);
+		Command command(cmd.header.bytes);
 
 		crc_calc = crc32mpeg2_calc(&cmd.header.sof, 4, true);
 
@@ -152,8 +153,29 @@ void UMD::listen(void){
 			usb.put_header(CMDREPLY.CRC_ERROR);
 		}else{
 
-			// reply acknowledge with the command's word
-			usb.put_header(cmd.header.cmd);
+			// check bounds for command
+			if( cmd.header.cmd < cmd_table.size() ){
+				// reply acknowledge with the command's word
+				usb.put_header(cmd.header.cmd);
+				// get command from table
+				exec_command = cmd_table[cmd.header.cmd];
+				// execute the command
+				cmd_return_code = (this->*exec_command.command)(&ubuf);
+				if( cmd_return_code != UMD_CMD_OK ){
+					// command failed, override header with command failed, and send failed return code
+					usb.put_header(CMDREPLY.CMD_FAILED);
+					usb.put(cmd_return_code);
+				}
+			}else{
+				// command index out of range - i.e. unimplemented
+				// override the header with NO_ACK
+				usb.put_header(CMDREPLY.NO_ACK);
+			}
+
+			// transmit the queue
+			usb.transmit();
+
+
 
 			// decode command
 			switch(cmd.header.cmd){
