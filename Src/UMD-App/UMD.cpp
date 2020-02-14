@@ -97,6 +97,8 @@ void UMD::run(void){
 	usb.put(std::string("UMD v2.0.0.0"));
 	usb.transmit();
 
+	// some debugging sessions start with alot of junk usb packets, flush them out
+	usb.flush();
 
 	while(1){
 		umd_millis = HAL_GetTick();
@@ -124,7 +126,6 @@ void UMD::listen(void){
 
 		// retrieve the command header 8 bytes
 		usb.get(cmd.header.bytes, CMD_HEADER_SIZE);
-		Command command(cmd.header.bytes);
 
 		crc_calc = crc32mpeg2_calc(&cmd.header.sof, 4, true);
 
@@ -170,43 +171,6 @@ void UMD::listen(void){
 				// command index out of range - i.e. unimplemented
 				// override the header with NO_ACK
 				usb.put_header(CMDREPLY.NO_ACK);
-			}
-
-			// transmit the queue
-			usb.transmit();
-
-
-
-			// decode command
-			switch(cmd.header.cmd){
-			case CMD_UMD:
-				usb.put(std::string("UMD v2.0.0.0"));
-				break;
-
-			case CMD_SETID:
-				// pc assigns a unique 32bit id to this UMD
-				pc_assigned_id = ubuf.u32[0];
-				break;
-
-			case CMD_SETLEDS:
-				// first byte contains the LED value
-				io_set_leds(ubuf.u8[0]);
-				break;
-
-			case CMD_SETCARTV:
-				// first byte contains the voltage value
-				cart->set_voltage(static_cast<Cartridge::eVoltage>(ubuf.u8[0]));
-				break;
-
-			case CMD_GETCARTV:
-				usb.put(static_cast<uint16_t>(cart->vcart));
-				break;
-
-			// DEFAULT REPLY
-			default:
-				//override the header with NO_ACK
-				usb.put_header(CMDREPLY.NO_ACK);
-				break;
 			}
 		}
 		// transmit the queue

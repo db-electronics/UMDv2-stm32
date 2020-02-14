@@ -171,21 +171,24 @@ private:
 
 	// CMD Jump table
 	struct UMD_CMD{
-		uint16_t     	word;							/**< command word */
 		uint32_t		(UMD::*command)(UMD_BUF *buf) = nullptr;    /**< function pointer implementing the command */
-		std::string 	name;                           /**< command name */
+		std::string 	name;                           			/**< command name */
 	};
 
 	UMD_CMD exec_command;
 	std::vector<UMD_CMD> cmd_table {
-		{ 0x0000, &UMD::cmd_setleds,   "set leds:     [uint32_t]" },
-		{ 0x0001, &UMD::cmd_setid,     "set id:       [uint32_t]" },
-		{ 0x0002, &UMD::cmd_version,   "get version" },
-		{ 0x0001, &UMD::cmd_getcartv,  "get cartv" },
-		{ 0x0001, &UMD::cmd_setcartv,  "set cartv:    [uint32_t]" }
+		{ &UMD::cmd_undefined, "0x0000: undefined" },
+		{ &UMD::cmd_listcmd,   "0x0001: list commands" },
+		{ &UMD::cmd_setleds,   "0x0002: set leds      [uint32_t]" },
+		{ &UMD::cmd_setid,     "0x0003: set id        [uint32_t]" },
+		{ &UMD::cmd_version,   "0x0004: get version" },
+		{ &UMD::cmd_getcartv,  "0x0005: get cartv" },
+		{ &UMD::cmd_setcartv,  "0x0006: set cartv:    [uint32_t]" }
 	};
 
 	// Command prototypes
+	uint32_t cmd_undefined(UMD_BUF *buf);
+	uint32_t cmd_listcmd(UMD_BUF *buf);
 	uint32_t cmd_setleds(UMD_BUF *buf);
 	uint32_t cmd_setid(UMD_BUF *buf);
 	uint32_t cmd_version(UMD_BUF *buf);

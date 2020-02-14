@@ -60,5 +60,5 @@ The UMDv2 will respond will the following sequence:
 0x08 0x00 0x00 0x00
 ```
 * 0x0002 = Command being acknowleged
-* 0x0000 - Payload size
+* 0x0000 = Payload size
 
