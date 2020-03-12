@@ -93,3 +93,12 @@ uint32_t UMD::cmd_setcartv(UMD_BUF *buf){
 	return UMD_CMD_OK;
 }
 
+/*******************************************************************//**
+ * 0x0006
+ **********************************************************************/
+uint32_t UMD::cmd_getadapterid(UMD_BUF *buf){
+
+	cart->get_adapter_id();
+	return UMD_CMD_OK;
+}
+

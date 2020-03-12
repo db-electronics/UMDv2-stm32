@@ -22,7 +22,7 @@
 
 #include "Cartridge.h"
 #include "fsmc.h"
-
+#include "i2c.h"
 
 /*******************************************************************//**
  *
@@ -42,6 +42,7 @@ Cartridge::~Cartridge() {
  *
  **********************************************************************/
 void Cartridge::init(void){
+	param.id = 0;
 	set_voltage(vcart_off);
 	set_level_translators(false);
 }
@@ -82,6 +83,24 @@ void Cartridge::set_level_translators(bool enable){
 		HAL_GPIO_WritePin(nOUT_EN1_GPIO_Port, nOUT_EN1_Pin, GPIO_PIN_SET);
 	}
 }
+
+/*******************************************************************//**
+ *
+ **********************************************************************/
+uint8_t Cartridge::get_adapter_id(void){
+
+	uint8_t cart_id = 0;
+	HAL_StatusTypeDef hal_ret;
+	hal_ret = HAL_I2C_Master_Transmit(&hi2c1, I2C_CART_ID_ADDRESS, &I2C_CART_ID_GPIO_REG, 1, 100);
+	if( hal_ret == HAL_OK){
+		hal_ret = HAL_I2C_Master_Receive(&hi2c1, I2C_CART_ID_ADDRESS, &cart_id, 1, 100);
+		if( hal_ret == HAL_OK ){
+			param.id = cart_id;
+		}
+	}
+	return cart_id;
+}
+
 
 /*******************************************************************//**
  *

@@ -34,6 +34,10 @@ public:
 	Cartridge();
 	virtual ~Cartridge();
 
+	struct _param{
+		uint8_t id;
+	}param;
+
 	// common methods
 	// Cartridge Methods
 	enum eVoltage : uint8_t {vcart_off=0, vcart_3v3, vcart_5v};
@@ -41,6 +45,10 @@ public:
 	void set_voltage(eVoltage v);
 	void set_level_translators(bool enable);
 
+	// MCP23008 id register address on cartridge adapters
+	const uint8_t I2C_CART_ID_ADDRESS = 0x20 << 1;
+	uint8_t I2C_CART_ID_GPIO_REG = 0x09;
+	uint8_t get_adapter_id(void);
 
 	// NOR_HandleTypeDef hnor1;
 	// SRAM_HandleTypeDef hsram2;

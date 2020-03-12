@@ -87,15 +87,6 @@ private:
 
 	uint32_t pc_assigned_id;
 
-	// CMD WORDS
-	enum COMMANDS : uint16_t {
-		CMD_UMD = 		0x0000,		///< UMD replies with "UMD v2.0.0.0" - only command which does not ACK
-		CMD_SETID = 	0x0001,		///< assigned pc_assigned_id for multi-umd setup
-		CMD_SETLEDS = 	0x0002,
-		CMD_SETCARTV =  0x0003,
-		CMD_GETCARTV =  0x0004
-	};
-
 	// CMD REPLIES
 	const struct{
 		uint16_t NO_ACK = 0xFFFF;
@@ -169,21 +160,23 @@ private:
 		UMD_CMD_FAIL,
 	}UMD_StatusTypedef;
 
-	// CMD Jump table
+	// command struct includes a function pointer and a descriptive string
 	struct UMD_CMD{
 		uint32_t		(UMD::*command)(UMD_BUF *buf) = nullptr;    /**< function pointer implementing the command */
 		std::string 	name;                           			/**< command name */
 	};
 
+	// commands are decoded by their index in the vector
 	UMD_CMD exec_command;
 	std::vector<UMD_CMD> cmd_table {
-		{ &UMD::cmd_undefined, "0x0000: undefined" },
-		{ &UMD::cmd_listcmd,   "0x0001: list commands" },
-		{ &UMD::cmd_setleds,   "0x0002: set leds      [uint32_t]" },
-		{ &UMD::cmd_setid,     "0x0003: set id        [uint32_t]" },
-		{ &UMD::cmd_version,   "0x0004: get version" },
-		{ &UMD::cmd_getcartv,  "0x0005: get cartv" },
-		{ &UMD::cmd_setcartv,  "0x0006: set cartv:    [uint32_t]" }
+		{ &UMD::cmd_undefined, 		"0x0000: undefined" },
+		{ &UMD::cmd_listcmd,   		"0x0001: list commands" },
+		{ &UMD::cmd_setleds,   		"0x0002: set leds      [uint32_t]" },
+		{ &UMD::cmd_setid,     		"0x0003: set id        [uint32_t]" },
+		{ &UMD::cmd_version,   		"0x0004: get version" },
+		{ &UMD::cmd_getcartv,  		"0x0005: get cartv" },
+		{ &UMD::cmd_setcartv,  		"0x0006: set cartv:    [uint32_t]" },
+		{ &UMD::cmd_getadapterid,	"0x0007: get adapterid" }
 	};
 
 	// Command prototypes
@@ -194,6 +187,7 @@ private:
 	uint32_t cmd_version(UMD_BUF *buf);
 	uint32_t cmd_getcartv(UMD_BUF *buf);
 	uint32_t cmd_setcartv(UMD_BUF *buf);
+	uint32_t cmd_getadapterid(UMD_BUF *buf);
 
 };
 
