@@ -99,6 +99,7 @@ uint32_t UMD::cmd_setcartv(UMD_BUF *buf){
 uint32_t UMD::cmd_getadapterid(UMD_BUF *buf){
 
 	cart->get_adapter_id();
+	usb.put(cart->param.id);
 	return UMD_CMD_OK;
 }
 
