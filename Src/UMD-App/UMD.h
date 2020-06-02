@@ -97,7 +97,7 @@ private:
 	}CMDREPLY;
 
 	// FMSC memory pointers
-	__IO uint8_t * ce0_8b_ptr = (uint8_t *)(CE0_ADRESS);
+	//__IO uint8_t * ce0_8b_ptr = (uint8_t *)(CE0_ADRESS);
 
 	// main loop executes at millisecond intervals of this value
 	const uint32_t LISTEN_INTERVAL = 100;

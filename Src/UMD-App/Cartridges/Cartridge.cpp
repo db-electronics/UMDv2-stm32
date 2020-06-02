@@ -105,8 +105,31 @@ uint8_t Cartridge::get_adapter_id(void){
 /*******************************************************************//**
  *
  **********************************************************************/
-uint8_t Cartridge::readByte(uint32_t address){
+uint8_t Cartridge::read_byte(uint32_t address, uint32_t ce){
 	uint8_t value;
-	value = *(volatile uint8_t *)(FSMC_CE1_8BS_ADDR + address);
+	address += ce;
+	value = *(__IO uint8_t *)(address);
 	return value;
 }
+
+/*******************************************************************//**
+ *
+ **********************************************************************/
+void Cartridge::read_byte_block(uint32_t address, uint8_t *buf, uint16_t size, uint32_t ce){
+	address += ce;
+	for(; size != 0U; size--){
+		*buf = *(__IO uint8_t *)(address);
+		buf++;
+		address++;
+	}
+}
+
+/*******************************************************************//**
+ *
+ **********************************************************************/
+void Cartridge::write_byte(uint32_t address, uint8_t data, uint32_t ce){
+	address += ce;
+	*(__IO uint8_t *)(address) = data;
+}
+
+

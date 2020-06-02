@@ -60,11 +60,17 @@ public:
 	#define FSMC_CE1_8BS_ADDR				0x64000000U
 	#define FSMC_CE2_8BS_ADDR				0x68000000U
 	#define FSMC_CE3_16BS_ADDR				0x6C000000U
+	#define UMD_CE0 						FSMC_CE0_8BS_ADDR
+	#define UMD_CE1 						FSMC_CE1_8BS_ADDR
+	#define UMD_CE2 						FSMC_CE2_8BS_ADDR
+	#define UMD_CE3 						FSMC_CE3_8BS_ADDR
 
 	// cartridge methods
 	virtual void init(void);
 
-	uint8_t readByte(uint32_t address);
+	uint8_t read_byte(uint32_t address, uint32_t ce);
+	void read_byte_block(uint32_t address, uint8_t *buf, uint16_t size, uint32_t ce);
+	void write_byte(uint32_t address, uint8_t data, uint32_t ce);
 
 };
 

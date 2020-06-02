@@ -21,16 +21,19 @@
  */
  
 #include <stdint.h>
+#include "CartFactory.h"
 #include "Cartridges/Cartridge.h"
 #include "Cartridges/NoCart.h"
-#include "CartFactory.h"
+#include "Cartridges/Genesis.h"
+#include "Cartridges/MasterSystem.h"
 
 /*******************************************************************//**
  *
  **********************************************************************/
 CartFactory::CartFactory(){
-    carts[CartFactory::UNDEFINED]   = new NoCart();
-	//carts[CartFactory::GENESIS]    = new genesis();
+    carts[CartFactory::UNDEFINED] = new NoCart();
+	carts[CartFactory::GENESIS] = new Genesis();
+    carts[CartFactory::SMS] = new MasterSystem();
 
 }
 

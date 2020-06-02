@@ -39,10 +39,11 @@ public:
     ~CartFactory();
 
     // The mode value must match the MCP23008 value on the cartridge adapter board
-	#define CARTS_LEN  2
+	#define CARTS_LEN  3
     enum Mode : uint8_t {
     	UNDEFINED	= 0x00,
-		GENESIS		= 0x01
+		GENESIS		= 0x01,
+		SMS			= 0x02
     }; 	//!< The MCP23008 ID value on the adapter
 
     Cartridge* getCart(Mode mode);
