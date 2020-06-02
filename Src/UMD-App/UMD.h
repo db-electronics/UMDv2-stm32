@@ -78,14 +78,14 @@ private:
 	FATFS SDFatFs;					///< SD Card FAT file system object
 	FIL dbFile;						///< SD Card file object
 	uint32_t cmd_return_code;
+	uint32_t pc_assigned_id;
+	uint8_t cart_id;
 
 	struct _ADC_READINGS{
 		uint16_t current;			///< latest ADC reading of cartridge current
 		uint16_t avg;
 		uint16_t buffer[8];
 	}adc;
-
-	uint32_t pc_assigned_id;
 
 	// CMD REPLIES
 	const struct{

@@ -50,7 +50,10 @@ void UMD::init(void){
 
 	// We need a cart factory but only one, and this function is the only one that needs to update
 	// the cart ptr.  So we can use the static keyword to keep this across calls to the function
-	set_cartridge_type(0); // type 0 = UNDEFINED
+	// check for a connected adapter and set the cartridge type accordingly
+	cart_id = cart->get_adapter_id();
+	set_cartridge_type(cart_id); // type 0 = UNDEFINED
+	// set the IO according to this adapter
 	cart->init();
 
 	// pc assigned id defaults to 0
@@ -101,7 +104,7 @@ void UMD::run(void){
 	usb.flush();
 
 	while(1){
-		umd_millis = HAL_GetTick();
+		// super loop, listen for commands
 		listen();
 
 		// check adc
@@ -109,7 +112,18 @@ void UMD::run(void){
 		HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
 		adc.current = HAL_ADC_GetValue(&hadc1);
 
+		// periodically check if the adapter is still there
+		cart->get_adapter_id();
+		if(cart_id != cart->param.id){
+			//uh oh, the cartridge adapter changed!
+			cart_id = cart->param.id;
+			set_cartridge_type(cart_id); // type 0 = UNDEFINED
+			// set the IO according to this adapter
+			cart->init();
+		}
+
 		// wait a bit
+		umd_millis = HAL_GetTick();
 		while( (HAL_GetTick() - umd_millis) < LISTEN_INTERVAL );
 	}
 }
