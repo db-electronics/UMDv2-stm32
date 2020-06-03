@@ -12,7 +12,7 @@
 /*******************************************************************//**
  *
  **********************************************************************/
-void UMD::io_set_leds(uint8_t leds){
+void UMD::io_set_leds(const uint8_t& leds){
 
 	(leds & 0x01) ? HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, GPIO_PIN_SET) : HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, GPIO_PIN_RESET);
 	(leds & 0x02) ? HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET) : HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
@@ -23,7 +23,7 @@ void UMD::io_set_leds(uint8_t leds){
 /*******************************************************************//**
  *
  **********************************************************************/
-void UMD::io_shift_leds(uint8_t dir){
+void UMD::io_shift_leds(const uint8_t& dir){
 
 	static uint8_t state = 1;
 

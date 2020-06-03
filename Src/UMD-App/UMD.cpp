@@ -195,7 +195,7 @@ void UMD::listen(void){
 /*******************************************************************//**
  *
  **********************************************************************/
-void UMD::set_cartridge_type(uint8_t mode){
+void UMD::set_cartridge_type(const uint8_t& mode){
 	static CartFactory cf;
 	cart = cf.getCart(static_cast<CartFactory::Mode>(mode));
 }
@@ -203,7 +203,7 @@ void UMD::set_cartridge_type(uint8_t mode){
 /*******************************************************************//**
  *
  **********************************************************************/
-uint32_t UMD::crc32mpeg2_calc(uint32_t *data, uint32_t len, bool reset){
+uint32_t UMD::crc32mpeg2_calc(uint32_t *data, const uint32_t& len, bool reset){
 	uint32_t swapped, result, i;
 
 	// swapping the endianness of each u32 gets the same results as pythons:

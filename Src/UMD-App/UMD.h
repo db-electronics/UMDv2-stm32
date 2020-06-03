@@ -142,13 +142,13 @@ private:
      * \param bool reset true to begin a new CRC calc, false to accumulate
      * \return the current crc value
      **********************************************************************/
-	uint32_t crc32mpeg2_calc(uint32_t *data, uint32_t len, bool reset);
+	uint32_t crc32mpeg2_calc(uint32_t *data, const uint32_t& len, bool reset);
 
-	void set_cartridge_type(uint8_t mode);
+	void set_cartridge_type(const uint8_t& mode);
 
 	// LED methods
-	void io_set_leds(uint8_t leds);
-	void io_shift_leds(uint8_t dir);
+	void io_set_leds(const uint8_t& leds);
+	void io_shift_leds(const uint8_t& dir);
 
 	// Cartridge Methods
 	void io_set_level_translators(bool enable);
