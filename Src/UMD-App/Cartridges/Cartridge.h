@@ -55,22 +55,27 @@ public:
 	// NOR_HandleTypeDef hnor3;
 	// SRAM_HandleTypeDef hsram4;
 
-	//FSMC address offsets
-	const uint32_t FSMC_CE0_8BS_ADDR = 0x60000000U;
-	const uint32_t FSMC_CE1_8BS_ADDR = 0x64000000U;
-	const uint32_t FSMC_CE2_8BS_ADDR = 0x68000000U;
-	const uint32_t FSMC_CE3_16BS_ADDR = 0x6C000000U;
-	const uint32_t UMD_CE0 = FSMC_CE0_8BS_ADDR;
-	const uint32_t UMD_CE1 = FSMC_CE1_8BS_ADDR;
-	const uint32_t UMD_CE2 = FSMC_CE2_8BS_ADDR;
-	const uint32_t UMD_CE3 = FSMC_CE3_16BS_ADDR;
 
 	// cartridge methods
 	virtual void init(void);
 
-	virtual uint8_t read_byte(uint32_t address, uint32_t ce);
-	virtual void read_byte_block(uint32_t address, uint8_t *buf, uint16_t size, uint32_t ce);
-	virtual void write_byte(uint32_t address, uint8_t data, uint32_t ce);
+	// default CE0 on base implementation
+	virtual uint8_t read_rom_byte(const uint16_t& address);
+
+	virtual uint8_t read_rom_byte(const uint32_t& address);
+
+	virtual void read_rom_byte(const uint32_t& address, uint8_t *buf, uint16_t size);
+
+	virtual void write_rom_byte(const uint16_t& address, uint8_t data);
+
+	virtual void write_rom_byte(const uint32_t& address, uint8_t data);
+
+protected:
+	//FSMC address offsets
+	const uint32_t UMD_CE0 = 0x60000000U;
+	const uint32_t UMD_CE1 = 0x64000000U;
+	const uint32_t UMD_CE2 = 0x68000000U;
+	const uint32_t UMD_CE3 = 0x6C000000U;
 
 };
 
