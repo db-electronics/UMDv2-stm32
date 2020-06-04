@@ -45,30 +45,27 @@ public:
 	void init();
 
 	// fixed read without any mapping consideration
-	uint8_t read_rom_byte(const uint16_t& address);
+	// 16 bit address reads ignore the mapping scheme
+	void read_rom(uint16_t address, uint8_t *buf);
+	void read_rom(uint32_t address, uint8_t *buf);
+	void read_rom(uint16_t address, uint8_t *buf, uint16_t size);
+	void read_rom(uint32_t address, uint8_t *buf, uint16_t size);
 
-	uint8_t read_rom_byte(const uint32_t& address);
-
-	void read_rom_byte(const uint32_t& address, uint8_t *buf, uint16_t size);
-
-	void write_rom_byte(const uint32_t& address, uint8_t data);
+	void write_rom(uint16_t address, uint8_t data);
+	void write_rom(uint32_t address, uint8_t data);
 
 private:
 
+	const uint32_t SMS_CE = UMD_CE0;
+
 	struct {
-		uint32_t last_address;
-		uint8_t slot0;
-		uint8_t slot1;
-		uint8_t slot2;
-	}shadow;
-
-	const uint16_t SLOT_0_BASE_ADDRESS = 0x0000;
-	const uint16_t SLOT_1_BASE_ADDRESS = 0x4000;
-	const uint16_t SLOT_2_BASE_ADDRESS = 0x8000;
-
-	const uint16_t SLOT_0_REG_ADDRESS = 0xFFFD;
-	const uint16_t SLOT_1_REG_ADDRESS = 0xFFFE;
-	const uint16_t SLOT_2_REG_ADDRESS = 0xFFFF;
+		const uint32_t BASE_ADDRESS[3] = {0x00000000, 0x00004000, 0x00008000};
+		const uint16_t REG_ADDRESS[3] = {0xFFFD, 0xFFFE, 0xFFFF};
+		const uint8_t DEFAULT = 2;
+		const uint16_t SIZE = 0x4000;
+		const uint16_t MASK = 0x3FFF;
+		uint8_t shadow[3];
+	}slot;
 
 	uint32_t set_slot_register(const uint32_t& address, uint8_t slot_num);
 

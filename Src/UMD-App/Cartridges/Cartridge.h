@@ -59,16 +59,15 @@ public:
 	// cartridge methods
 	virtual void init(void);
 
-	// default CE0 on base implementation
-	virtual uint8_t read_rom_byte(const uint16_t& address);
+	// default CE0 on base implementation,
+	virtual void read_rom(uint16_t address, uint8_t *buf);
+	virtual void read_rom(uint32_t address, uint8_t *buf);
+	virtual void read_rom(uint16_t address, uint8_t *buf, uint16_t size);
+	virtual void read_rom(uint32_t address, uint8_t *buf, uint16_t size);
 
-	virtual uint8_t read_rom_byte(const uint32_t& address);
 
-	virtual void read_rom_byte(const uint32_t& address, uint8_t *buf, uint16_t size);
-
-	virtual void write_rom_byte(const uint16_t& address, uint8_t data);
-
-	virtual void write_rom_byte(const uint32_t& address, uint8_t data);
+	virtual void write_rom(uint16_t address, uint8_t data);
+	virtual void write_rom(uint32_t address, uint8_t data);
 
 protected:
 	//FSMC address offsets
@@ -76,6 +75,7 @@ protected:
 	const uint32_t UMD_CE1 = 0x64000000U;
 	const uint32_t UMD_CE2 = 0x68000000U;
 	const uint32_t UMD_CE3 = 0x6C000000U;
+	uint32_t default_ce = UMD_CE0;
 
 };
 

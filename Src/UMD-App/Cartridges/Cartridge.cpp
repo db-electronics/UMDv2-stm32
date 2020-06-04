@@ -103,48 +103,52 @@ uint8_t Cartridge::get_adapter_id(void){
 /*******************************************************************//**
  *
  **********************************************************************/
-uint8_t Cartridge::read_rom_byte(const uint16_t& address){
-	uint8_t value;
-	uint32_t fmsc_addr = address + UMD_CE0;
-	value = *(__IO uint8_t *)(fmsc_addr);
-	return value;
+void Cartridge::read_rom(uint16_t address, uint8_t *buf){
+	uint32_t fmsc_addr = UMD_CE0 + address;
+	*buf = *(__IO uint8_t *)(fmsc_addr);
 }
 
 /*******************************************************************//**
  *
  **********************************************************************/
-uint8_t Cartridge::read_rom_byte(const uint32_t& address){
-	uint8_t value;
-	uint32_t fmsc_addr = address + UMD_CE0;
-	value = *(__IO uint8_t *)(fmsc_addr);
-	return value;
+void Cartridge::read_rom(uint32_t address, uint8_t *buf){
+	uint32_t fmsc_addr = UMD_CE0 + address;
+	*buf = *(__IO uint8_t *)(fmsc_addr);
 }
 
 /*******************************************************************//**
  *
  **********************************************************************/
-void Cartridge::read_rom_byte(const uint32_t& address, uint8_t *buf, uint16_t size){
-	uint32_t fmsc_addr = address + UMD_CE0;
-	for(; size != 0U; size--){
-		*buf = *(__IO uint8_t *)(fmsc_addr);
-		buf++;
-		fmsc_addr++;
+void Cartridge::read_rom(uint16_t address, uint8_t *buf, uint16_t size){
+	uint32_t fmsc_addr = UMD_CE0 + address;
+	for(; size != 0; size--){
+		*(buf++) = *(__IO uint8_t *)(fmsc_addr++);
 	}
 }
 
 /*******************************************************************//**
  *
  **********************************************************************/
-void Cartridge::write_rom_byte(const uint16_t& address, uint8_t data){
-	uint32_t fmsc_addr = address + UMD_CE0;
+void Cartridge::read_rom(uint32_t address, uint8_t *buf, uint16_t size){
+	uint32_t fmsc_addr = UMD_CE0 + address;
+	for(; size != 0; size--){
+		*(buf++) = *(__IO uint8_t *)(fmsc_addr++);
+	}
+}
+
+/*******************************************************************//**
+ *
+ **********************************************************************/
+void Cartridge::write_rom(uint16_t address, uint8_t data){
+	uint32_t fmsc_addr = UMD_CE0 + address;
 	*(__IO uint8_t *)(fmsc_addr) = data;
 }
 
 /*******************************************************************//**
  *
  **********************************************************************/
-void Cartridge::write_rom_byte(const uint32_t& address, uint8_t data){
-	uint32_t fmsc_addr = address + UMD_CE0;
+void Cartridge::write_rom(uint32_t address, uint8_t data){
+	uint32_t fmsc_addr = UMD_CE0 + address;
 	*(__IO uint8_t *)(fmsc_addr) = data;
 }
 
