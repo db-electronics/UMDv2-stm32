@@ -34,9 +34,15 @@ public:
 	Cartridge();
 	virtual ~Cartridge();
 
-	struct _param{
+	struct s_param{
 		uint8_t id;
 	}param;
+
+	struct s_flash_info {
+		uint8_t manufacturer;
+		uint8_t device;
+		uint32_t size;
+	} flash_info;
 
 	// common methods
 	// Cartridge Methods
@@ -58,6 +64,9 @@ public:
 
 	// cartridge methods
 	virtual void init(void);
+
+	virtual void get_flash_id(void);
+	void find_flash_size(void);
 
 	// default CE0 on base implementation,
 	virtual void read_rom(uint16_t address, uint8_t *buf);

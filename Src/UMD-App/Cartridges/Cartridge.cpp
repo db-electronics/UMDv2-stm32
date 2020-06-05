@@ -46,6 +46,78 @@ void Cartridge::init(void){
 }
 
 /*******************************************************************//**
+ * The get_flash_size() function returns the flash size
+ **********************************************************************/
+void Cartridge::find_flash_size(void)
+{
+    switch( flash_info.manufacturer ){
+        // microchip
+        case 0xBF:
+            switch( flash_info.device )
+            {
+                case 0x6D: // SST39VF6401B
+                case 0x6C: // SST39VF6402B
+                	flash_info.size = 0x800000;
+                    break;
+                case 0x5D: // SST39VF3201B
+                case 0x5C: // SST39VF3202B
+                case 0x5B: // SST39VF3201
+                case 0x5A: // SST39VF3202
+                	flash_info.size = 0x400000;
+                    break;
+                case 0x4F: // SST39VF1601C
+                case 0x4E: // SST39VF1602C
+                case 0x4B: // SST39VF1601
+                case 0x4A: // SST39VF1602
+                	flash_info.size = 0x200000;
+                    break;
+                default:
+                    break;
+            }
+            break;
+
+        // macronix
+        case 0xC2:
+            switch( flash_info.device )
+            {
+                // chips which will be single per board
+                // 3.3V
+                case 0xC9: // MX29LV640ET
+                case 0xCB: // MX29LV640EB
+                	flash_info.size = 0x800000;
+                    break;
+                case 0xA7: // MX29LV320ET
+                case 0xA8: // MX29LV320EB
+                	flash_info.size = 0x400000;
+                    break;
+                case 0xC4: // MX29LV160DT
+                case 0x49: // MX29LV160DB
+                	flash_info.size = 0x400000;
+                    break;
+                // 5V
+                case 0x58: // MX29F800CT
+                case 0xD6: // MX29F800CB
+                	flash_info.size = 0x100000;
+                    break;
+                case 0x23: // MX29F400CT
+                case 0xAB: // MX29F400CB
+                	flash_info.size = 0x80000;
+                    break;
+                case 0x51: // MX29F200CT
+                case 0x57: // MX29F200CB
+                	flash_info.size = 0x80000;
+                    break;
+                default:
+                    break;
+            }
+            break;
+
+        default:
+            break;
+    }
+}
+
+/*******************************************************************//**
  *
  **********************************************************************/
 void Cartridge::set_voltage(eVoltage voltage){
@@ -99,6 +171,23 @@ uint8_t Cartridge::get_adapter_id(void){
 	return cart_id;
 }
 
+/*******************************************************************//**
+ *
+ **********************************************************************/
+void Cartridge::get_flash_id(void){
+	//mx29f800 software ID detect byte mode
+	// enter software ID mode
+	write_rom((uint16_t)0x0AAA, 0xAA);
+	write_rom((uint16_t)0x0555, 0x55);
+	write_rom((uint16_t)0x0AAA, 0x90);
+	// read manufacturer
+	read_rom((uint16_t)0x0000, &flash_info.manufacturer);
+	// read device
+	read_rom((uint16_t)0x0001, &flash_info.device);
+	// exit software ID mode
+	write_rom((uint16_t)0x0000, 0xF0);
+	find_flash_size();
+}
 
 /*******************************************************************//**
  *

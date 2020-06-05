@@ -63,6 +63,19 @@ uint32_t MasterSystem::set_slot_register(const uint32_t& address, uint8_t slot_n
 /*******************************************************************//**
  *
  **********************************************************************/
+void MasterSystem::get_flash_id(void){
+
+	// enable writes to ROM
+	write_rom(slot.REG_CTRL, 0x80);
+	// call super
+	Cartridge::get_flash_id();
+	// disable writes to ROM
+	write_rom(slot.REG_CTRL, 0x00);
+}
+
+/*******************************************************************//**
+ *
+ **********************************************************************/
 void MasterSystem::read_rom(uint16_t address, uint8_t *buf){
 	uint32_t fmsc_addr = SMS_CE + address;
 	*buf = *(__IO uint8_t *)(fmsc_addr);

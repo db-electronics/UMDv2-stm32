@@ -44,6 +44,8 @@ public:
 	 **********************************************************************/
 	void init();
 
+	virtual void get_flash_id(void);
+
 	// fixed read without any mapping consideration
 	// 16 bit address reads ignore the mapping scheme
 	void read_rom(uint16_t address, uint8_t *buf);
@@ -61,6 +63,7 @@ private:
 	struct {
 		const uint32_t BASE_ADDRESS[3] = {0x00000000, 0x00004000, 0x00008000};
 		const uint16_t REG_ADDRESS[3] = {0xFFFD, 0xFFFE, 0xFFFF};
+		const uint16_t REG_CTRL = 0xFFFC;
 		const uint8_t DEFAULT = 2;
 		const uint16_t SIZE = 0x4000;
 		const uint16_t MASK = 0x3FFF;

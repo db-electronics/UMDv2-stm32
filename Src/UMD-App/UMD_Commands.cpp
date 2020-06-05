@@ -94,12 +94,47 @@ uint32_t UMD::cmd_setcartv(UMD_BUF *buf){
 }
 
 /*******************************************************************//**
- * 0x0006
+ * 0x0007
  **********************************************************************/
 uint32_t UMD::cmd_getadapterid(UMD_BUF *buf){
 
 	cart->get_adapter_id();
 	usb.put(cart->param.id);
+	return UMD_CMD_OK;
+}
+
+/*******************************************************************//**
+ * 0x0008
+ **********************************************************************/
+uint32_t UMD::cmd_getflashid(UMD_BUF *buf){
+
+	cart->get_flash_id();
+	usb.put(cart->flash_info.manufacturer);
+	usb.put(cart->flash_info.device);
+	usb.put(cart->flash_info.size);
+	return UMD_CMD_OK;
+}
+
+/*******************************************************************//**
+ * 0x0009
+ **********************************************************************/
+uint32_t UMD::cmd_readrom(UMD_BUF *buf){
+	uint32_t address;
+	uint16_t size;
+
+	// retrieve start address and size in bytes of requested read
+	address = *(buf->u32);
+	size = *((buf + sizeof(address))->u16);
+	// read the rom
+	cart->read_rom(address, &buf->u8[0], size);
+
+	// send back to host, pad to nearest u32 size
+	uint8_t pad = size * sizeof(uint32_t);
+	if( pad != 0){
+		pad = 4 - pad;
+	}
+	usb.put(&buf->u8[0], size+pad);
+
 	return UMD_CMD_OK;
 }
 

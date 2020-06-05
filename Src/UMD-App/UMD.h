@@ -171,12 +171,14 @@ private:
 	std::vector<UMD_CMD> cmd_table {
 		{ &UMD::cmd_undefined, 		"0x0000: undefined" },
 		{ &UMD::cmd_listcmd,   		"0x0001: list commands" },
-		{ &UMD::cmd_setleds,   		"0x0002: set leds      [uint32_t]" },
-		{ &UMD::cmd_setid,     		"0x0003: set id        [uint32_t]" },
+		{ &UMD::cmd_setleds,   		"0x0002: set leds		[uint32_t]val" },
+		{ &UMD::cmd_setid,     		"0x0003: set id			[uint32_t]val" },
 		{ &UMD::cmd_version,   		"0x0004: get version" },
 		{ &UMD::cmd_getcartv,  		"0x0005: get cartv" },
-		{ &UMD::cmd_setcartv,  		"0x0006: set cartv:    [uint32_t]" },
-		{ &UMD::cmd_getadapterid,	"0x0007: get adapterid" }
+		{ &UMD::cmd_setcartv,  		"0x0006: set cartv:		[uint32_t]val" },
+		{ &UMD::cmd_getadapterid,	"0x0007: get adapterid" },
+		{ &UMD::cmd_getflashid,		"0x0008: get flashid" },
+		{ &UMD::cmd_getflashid,		"0x0009: read rom		[uint32_t]addr	[uint16_t]size" }
 	};
 
 	// Command prototypes
@@ -188,6 +190,8 @@ private:
 	uint32_t cmd_getcartv(UMD_BUF *buf);
 	uint32_t cmd_setcartv(UMD_BUF *buf);
 	uint32_t cmd_getadapterid(UMD_BUF *buf);
+	uint32_t cmd_getflashid(UMD_BUF *buf);
+	uint32_t cmd_readrom(UMD_BUF *buf);
 
 };
 
@@ -195,14 +199,14 @@ private:
  * \class Command
  * \brief UMD application
  **********************************************************************/
-class Command{
-public:
-
-	uint16_t code;
-	uint16_t payload_size;
-	uint32_t crc32;
-
-	Command(uint8_t *data);
-};
+//class Command{
+//public:
+//
+//	uint16_t code;
+//	uint16_t payload_size;
+//	uint32_t crc32;
+//
+//	Command(uint8_t *data);
+//};
 
 #endif /* UMD_H_ */
