@@ -119,21 +119,34 @@ uint32_t UMD::cmd_getflashid(UMD_BUF *buf){
  * 0x0009
  **********************************************************************/
 uint32_t UMD::cmd_readrom(UMD_BUF *buf){
-	uint32_t address;
-	uint16_t size;
+	uint32_t address, crc, crc_len;
+	uint16_t size, pad;
 
 	// retrieve start address and size in bytes of requested read
 	address = *(buf->u32);
 	size = *((buf + sizeof(address))->u16);
+	crc_len = size;
+
 	// read the rom
 	cart->read_rom(address, &buf->u8[0], size);
 
-	// send back to host, pad to nearest u32 size
-	uint8_t pad = size * sizeof(uint32_t);
+	// send back to host, 0 pad to nearest u32 size
+	pad = size % sizeof(uint32_t);
 	if( pad != 0){
 		pad = 4 - pad;
+		size += pad;
+		crc_len += pad;
+		while(pad--){
+			usb.put((uint8_t)0x00);
+		}
 	}
-	usb.put(&buf->u8[0], size+pad);
+
+	// put data in output buffer
+	usb.put(&buf->u8[0], size);
+	// add crc32
+	crc = crc32mpeg2_calc(buf->u32, crc_len, true);
+	usb.put(crc);
+
 
 	return UMD_CMD_OK;
 }
