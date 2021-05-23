@@ -177,20 +177,22 @@ uint8_t Cartridge::get_adapter_id(void){
 void Cartridge::get_flash_id(void){
 	//mx29f800 software ID detect byte mode
 	// enter software ID mode
-	write_rom((uint16_t)0x0AAA, 0xAA);
-	write_rom((uint16_t)0x0555, 0x55);
-	write_rom((uint16_t)0x0AAA, 0x90);
+	write_rom((uint16_t)0x0AAA, (uint8_t)0xAA);
+	write_rom((uint16_t)0x0555, (uint8_t)0x55);
+	write_rom((uint16_t)0x0AAA, (uint8_t)0x90);
 	// read manufacturer
 	read_rom((uint16_t)0x0000, &flash_info.manufacturer);
 	// read device
 	read_rom((uint16_t)0x0001, &flash_info.device);
 	// exit software ID mode
-	write_rom((uint16_t)0x0000, 0xF0);
+	write_rom((uint16_t)0x0000, (uint8_t)0xF0);
 	find_flash_size();
 }
 
 /*******************************************************************//**
- *
+* 8 BIT OPERATIONS
+************************************************************************
+ * single 8bit read at 16bit address
  **********************************************************************/
 void Cartridge::read_rom(uint16_t address, uint8_t *buf){
 	uint32_t fmsc_addr = UMD_CE0 + address;
@@ -198,7 +200,7 @@ void Cartridge::read_rom(uint16_t address, uint8_t *buf){
 }
 
 /*******************************************************************//**
- *
+ * single 8bit read at 32bit address
  **********************************************************************/
 void Cartridge::read_rom(uint32_t address, uint8_t *buf){
 	uint32_t fmsc_addr = UMD_CE0 + address;
@@ -206,7 +208,7 @@ void Cartridge::read_rom(uint32_t address, uint8_t *buf){
 }
 
 /*******************************************************************//**
- *
+ * multiple 8bit reads at 16bit address
  **********************************************************************/
 void Cartridge::read_rom(uint16_t address, uint8_t *buf, uint16_t size){
 	uint32_t fmsc_addr = UMD_CE0 + address;
@@ -216,7 +218,7 @@ void Cartridge::read_rom(uint16_t address, uint8_t *buf, uint16_t size){
 }
 
 /*******************************************************************//**
- *
+ * multiple 8bit read at 32bit address
  **********************************************************************/
 void Cartridge::read_rom(uint32_t address, uint8_t *buf, uint16_t size){
 	uint32_t fmsc_addr = UMD_CE0 + address;
@@ -226,7 +228,7 @@ void Cartridge::read_rom(uint32_t address, uint8_t *buf, uint16_t size){
 }
 
 /*******************************************************************//**
- *
+ * single 8 bit write at 16bit address
  **********************************************************************/
 void Cartridge::write_rom(uint16_t address, uint8_t data){
 	uint32_t fmsc_addr = UMD_CE0 + address;
@@ -234,10 +236,38 @@ void Cartridge::write_rom(uint16_t address, uint8_t data){
 }
 
 /*******************************************************************//**
- *
+ * single 8 bit write at 32bit address
  **********************************************************************/
 void Cartridge::write_rom(uint32_t address, uint8_t data){
 	uint32_t fmsc_addr = UMD_CE0 + address;
 	*(__IO uint8_t *)(fmsc_addr) = data;
 }
 
+/*******************************************************************//**
+* 16 BIT OPERATIONS
+************************************************************************
+ * single 16bit read at 32bit address
+ **********************************************************************/
+void Cartridge::read_rom(uint32_t address, uint16_t *buf){
+	uint32_t fmsc_addr = UMD_CE2 + address;
+	*buf = *(__IO uint16_t *)(fmsc_addr);
+}
+
+/*******************************************************************//**
+ * multiple 16bit read at 32bit address
+ **********************************************************************/
+void Cartridge::read_rom(uint32_t address, uint16_t *buf, uint16_t size){
+	uint32_t fmsc_addr = UMD_CE2 + address;
+	for(; size != 0; size -= 2){
+		*(buf++) = *(__IO uint16_t *)(fmsc_addr);
+		fmsc_addr += 2;
+	}
+}
+
+/*******************************************************************//**
+ * single 8 bit write at 32bit address
+ **********************************************************************/
+void Cartridge::write_rom(uint32_t address, uint16_t data){
+	uint32_t fmsc_addr = UMD_CE2 + address;
+	*(__IO uint16_t *)(fmsc_addr) = data;
+}

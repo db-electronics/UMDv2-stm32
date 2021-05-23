@@ -37,4 +37,3 @@ void Genesis::init(void){
 	set_level_translators(true);
 }
 
-

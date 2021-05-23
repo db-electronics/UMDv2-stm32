@@ -45,6 +45,11 @@ public:
 	 **********************************************************************/
 	void init();
 
+
+private:
+
+	const uint32_t GEN_CE = UMD_CE2;
+
 };
 
 #endif /* CARTRIDGES_GENESIS_H_ */

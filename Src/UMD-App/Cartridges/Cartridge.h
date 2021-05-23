@@ -68,15 +68,20 @@ public:
 	virtual void get_flash_id(void);
 	void find_flash_size(void);
 
-	// default CE0 on base implementation,
+	// 8 bit operations
+	// default CE0 on base implementation, 8 bit reads
 	virtual void read_rom(uint16_t address, uint8_t *buf);
 	virtual void read_rom(uint32_t address, uint8_t *buf);
 	virtual void read_rom(uint16_t address, uint8_t *buf, uint16_t size);
 	virtual void read_rom(uint32_t address, uint8_t *buf, uint16_t size);
 
-
 	virtual void write_rom(uint16_t address, uint8_t data);
 	virtual void write_rom(uint32_t address, uint8_t data);
+
+	// 16 bit operations
+	virtual void read_rom(uint32_t address, uint16_t *buf);
+	virtual void read_rom(uint32_t address, uint16_t *buf, uint16_t size);
+	virtual void write_rom(uint32_t address, uint16_t data);
 
 protected:
 	//FSMC address offsets
