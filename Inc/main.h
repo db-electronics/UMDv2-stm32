@@ -29,7 +29,6 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
-#include "stm32f4xx_hal.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -85,6 +84,14 @@ void Error_Handler(void);
 #define BOOT1_GPIO_Port GPIOB
 #define nOUT_EN1_Pin GPIO_PIN_11
 #define nOUT_EN1_GPIO_Port GPIOF
+#define GP5_Pin GPIO_PIN_12
+#define GP5_GPIO_Port GPIOB
+#define GP4_Pin GPIO_PIN_13
+#define GP4_GPIO_Port GPIOB
+#define GP7_Pin GPIO_PIN_14
+#define GP7_GPIO_Port GPIOB
+#define GP6_Pin GPIO_PIN_15
+#define GP6_GPIO_Port GPIOB
 #define SEL0_Pin GPIO_PIN_7
 #define SEL0_GPIO_Port GPIOG
 #define SEL1_Pin GPIO_PIN_8

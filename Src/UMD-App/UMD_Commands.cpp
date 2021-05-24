@@ -128,7 +128,7 @@ uint32_t UMD::cmd_readrom(UMD_BUF *buf){
 	crc_len = size;
 
 	// read the rom
-	cart->read_rom(address, &buf->u8[0], size);
+	cart->read_bytes(address, &buf->u8[0], size, Cartridge::mem_prg);
 
 	// send back to host, 0 pad to nearest u32 size
 	pad = size % sizeof(uint32_t);

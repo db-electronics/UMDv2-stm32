@@ -26,6 +26,8 @@
 
 #include "Cartridge.h"
 
+#define SWAP_BYTES(w) ((w & 0xff) << 8) | ((w & 0xff00) >> 8)
+
 /*******************************************************************//**
  * \class Genesis
  * \brief
@@ -45,10 +47,15 @@ public:
 	 **********************************************************************/
 	void init();
 
+	void get_flash_id(void);
+
+	uint16_t read_word(uint32_t address, e_memory_type mem_t);
+	void read_words(uint32_t address, uint16_t *buf, uint16_t size, e_memory_type mem_t);
+	void write_word(uint32_t address, uint16_t data, e_memory_type mem_t);
 
 private:
 
-	const uint32_t GEN_CE = UMD_CE2;
+	const uint32_t GEN_CE = UMD_CE3;
 
 };
 

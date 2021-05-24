@@ -48,13 +48,13 @@ public:
 
 	// fixed read without any mapping consideration
 	// 16 bit address reads ignore the mapping scheme
-	void read_rom(uint16_t address, uint8_t *buf);
-	void read_rom(uint32_t address, uint8_t *buf);
-	void read_rom(uint16_t address, uint8_t *buf, uint16_t size);
-	void read_rom(uint32_t address, uint8_t *buf, uint16_t size);
+	uint8_t read_byte(uint16_t address, e_memory_type mem_t);
+	uint8_t read_byte(uint32_t address, e_memory_type mem_t);
+	void read_bytes(uint16_t address, uint8_t *buf, uint16_t size, e_memory_type mem_t);
+	void read_bytes(uint32_t address, uint8_t *buf, uint16_t size, e_memory_type mem_t);
 
-	void write_rom(uint16_t address, uint8_t data);
-	void write_rom(uint32_t address, uint8_t data);
+	void write_byte(uint16_t address, uint8_t data, e_memory_type mem_t);
+	void write_byte(uint32_t address, uint8_t data, e_memory_type mem_t);
 
 private:
 

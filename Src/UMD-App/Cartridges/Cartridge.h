@@ -46,10 +46,18 @@ public:
 
 	// common methods
 	// Cartridge Methods
-	enum eVoltage : uint8_t {vcart_off=0, vcart_3v3, vcart_5v};
+	enum eVoltage : uint8_t {
+		vcart_off=0, vcart_3v3, vcart_5v
+	};
 	eVoltage vcart;
+
 	void set_voltage(eVoltage v);
 	void set_level_translators(bool enable);
+
+	// memory types on cartridges
+	enum e_memory_type : uint8_t {
+		mem_prg=0, mem_chr, mem_ram, mem_bram, mem_ctrl
+	};
 
 	// MCP23008 id register address on cartridge adapters
 	const uint8_t I2C_CART_ID_ADDRESS = 0x20 << 1;
@@ -68,20 +76,19 @@ public:
 	virtual void get_flash_id(void);
 	void find_flash_size(void);
 
-	// 8 bit operations
-	// default CE0 on base implementation, 8 bit reads
-	virtual void read_rom(uint16_t address, uint8_t *buf);
-	virtual void read_rom(uint32_t address, uint8_t *buf);
-	virtual void read_rom(uint16_t address, uint8_t *buf, uint16_t size);
-	virtual void read_rom(uint32_t address, uint8_t *buf, uint16_t size);
+	// 8 bit operations, default to CE0, the base cart implementation ignores mem_t
+	virtual uint8_t read_byte(uint16_t address, e_memory_type mem_t);
+	virtual uint8_t read_byte(uint32_t address, e_memory_type mem_t);
+	virtual void read_bytes(uint16_t address, uint8_t *buf, uint16_t size, e_memory_type mem_t);
+	virtual void read_bytes(uint32_t address, uint8_t *buf, uint16_t size, e_memory_type mem_t);
 
-	virtual void write_rom(uint16_t address, uint8_t data);
-	virtual void write_rom(uint32_t address, uint8_t data);
+	virtual void write_byte(uint16_t address, uint8_t data, e_memory_type mem_t);
+	virtual void write_byte(uint32_t address, uint8_t data, e_memory_type mem_t);
 
-	// 16 bit operations
-	virtual void read_rom(uint32_t address, uint16_t *buf);
-	virtual void read_rom(uint32_t address, uint16_t *buf, uint16_t size);
-	virtual void write_rom(uint32_t address, uint16_t data);
+	// 16 bit operations default to CE3, the base cart implementation ignores mem_t
+	virtual uint16_t read_word(uint32_t address, e_memory_type mem_t);
+	virtual void read_words(uint32_t address, uint16_t *buf, uint16_t size, e_memory_type mem_t);
+	virtual void write_word(uint32_t address, uint16_t data, e_memory_type mem_t);
 
 protected:
 	//FSMC address offsets
