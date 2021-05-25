@@ -24,6 +24,7 @@
 #define CARTRIDGES_CARTRIDGE_H_
 
 #include <cstdint>
+#include "dma.h"
 
 /*******************************************************************//**
  * \class cartridge
@@ -37,6 +38,7 @@ public:
 	struct s_param{
 		uint8_t id;
 		uint8_t bus_size;
+		DMA_HandleTypeDef *dma_channel;
 	}param;
 
 	struct s_flash_info {
@@ -74,23 +76,32 @@ public:
 	virtual void init(void);
 	virtual void erase_flash(bool wait);
 	virtual void get_flash_id(void);
+	virtual uint16_t toggle_bit(uint16_t attempts);
 	void find_flash_size(void);
 
 	// 8 bit operations, default to CE0, the base cart implementation ignores mem_t
+	// 16 bit address read/write operations ignore the mapper
+	// child classes must override the uint32_t address method in order to manage a mapped address
 	virtual uint8_t read_byte(uint16_t address, e_memory_type mem_t);
 	virtual uint8_t read_byte(uint32_t address, e_memory_type mem_t);
-	virtual void read_bytes(uint16_t address, uint8_t *buf, uint16_t size, e_memory_type mem_t);
-	virtual void read_bytes(uint32_t address, uint8_t *buf, uint16_t size, e_memory_type mem_t);
+	virtual void read_bytes(uint16_t address, uint8_t *buf, uint16_t size, e_memory_type mem_t, bool dma = false);
+	virtual void read_bytes(uint32_t address, uint8_t *buf, uint16_t size, e_memory_type mem_t, bool dma = false);
 
 	virtual void write_byte(uint16_t address, uint8_t data, e_memory_type mem_t);
 	virtual void write_byte(uint32_t address, uint8_t data, e_memory_type mem_t);
 
+	virtual void program_bytes(uint32_t address, uint8_t *buf, uint16_t size, e_memory_type mem_t);
+
 	// 16 bit operations default to CE3, the base cart implementation ignores mem_t
 	virtual uint16_t read_word(uint32_t address, e_memory_type mem_t);
-	virtual void read_words(uint32_t address, uint16_t *buf, uint16_t size, e_memory_type mem_t);
+	virtual void read_words(uint32_t address, uint16_t *buf, uint16_t size, e_memory_type mem_t, bool dma = false);
+
 	virtual void write_word(uint32_t address, uint16_t data, e_memory_type mem_t);
 
+	virtual void program_words(uint32_t address, uint16_t *buf, uint16_t size, e_memory_type mem_t);
+
 protected:
+
 	//FSMC address offsets
 	const uint32_t UMD_CE0 = 0x60000000U;
 	const uint32_t UMD_CE1 = 0x64000000U;

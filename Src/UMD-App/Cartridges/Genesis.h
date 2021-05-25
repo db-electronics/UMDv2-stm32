@@ -26,7 +26,6 @@
 
 #include "Cartridge.h"
 
-#define SWAP_BYTES(w) ((w & 0xff) << 8) | ((w & 0xff00) >> 8)
 
 /*******************************************************************//**
  * \class Genesis
@@ -48,14 +47,16 @@ public:
 	void init();
 	void erase_flash(bool wait);
 	void get_flash_id(void);
+	uint16_t toggle_bit(uint16_t attempts);
 
 	// 8 bit operations, default to CE0, the base cart implementation ignores mem_t
 	void write_byte(uint32_t address, uint8_t data, e_memory_type mem_t);
 
 	// 16 bit operations default to CE3, the base cart implementation ignores mem_t
 	uint16_t read_word(uint32_t address, e_memory_type mem_t);
-	void read_words(uint32_t address, uint16_t *buf, uint16_t size, e_memory_type mem_t);
+	void read_words(uint32_t address, uint16_t *buf, uint16_t size, e_memory_type mem_t, bool dma = false);
 	void write_word(uint32_t address, uint16_t data, e_memory_type mem_t);
+	void program_words(uint32_t address, uint16_t *buf, uint16_t size, e_memory_type mem_t);
 
 	/*******************************************************************//**
 	 * \brief Pins
@@ -71,6 +72,19 @@ public:
 	#define nM3_GPIO_Port GPIOC
 
 private:
+
+	//macro to flip endianness of words
+	#define BIG_END_WORD(w) ((w & 0xff) << 8) | ((w & 0xff00) >> 8)
+	void inline swap_bytes(uint16_t *buf, uint16_t size){
+		for(; size > 0; size -= 2){
+			*(buf) = BIG_END_WORD(*buf);
+			buf++;
+		}
+	};
+
+	// enable/disable bram latche
+	void inline enable_bram_writes(void){ this->write_byte(0xA130F1, 0x03, mem_ctrl); };
+	void inline disable_bram(void){ this->write_byte(0xA130F1, 0x00, mem_ctrl); };
 
 	const uint32_t TIME_CE = UMD_CE0;
 	const uint32_t TIME_LOWER_BOUND = 0xA13000;

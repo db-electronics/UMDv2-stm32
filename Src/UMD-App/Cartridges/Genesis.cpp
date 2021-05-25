@@ -21,6 +21,7 @@
  */
 
 #include "Genesis.h"
+#include "dma.h"
 #include "fsmc.h"
 
 /*******************************************************************//**
@@ -37,6 +38,7 @@ void Genesis::init(void){
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 
 	param.bus_size = 16;
+	param.dma_channel = &hdma_memtomem_dma2_stream1;
 
 	// set nMRES to output and drive low for now to reset cart
 	GPIO_InitStruct.Pin = nMRES_Pin|nM3_Pin;
@@ -78,6 +80,15 @@ void Genesis::erase_flash(bool wait){
 	this->write_word((uint32_t)0x0555 << 1, 0x5500, mem_prg);
 	this->write_word((uint32_t)0x0AAA << 1, 0x1000, mem_prg);
 
+	if(wait){
+		uint32_t umd_millis = HAL_GetTick();
+		while( this->toggle_bit(4) != 4 ){
+			if( (HAL_GetTick() - umd_millis) > 250 ){
+				umd_millis = HAL_GetTick();
+			}
+		}
+	}
+
 }
 
 /*******************************************************************//**
@@ -91,12 +102,34 @@ void Genesis::get_flash_id(void){
 	this->write_word((uint32_t)0x0555 << 1, 0x5500, mem_prg);
 	this->write_word((uint32_t)0x0AAA << 1, 0x9000, mem_prg);
 	// read manufacturer
-	flash_info.manufacturer = (uint8_t)this->read_word((uint32_t)0x0000, mem_prg);
+	this->flash_info.manufacturer = (uint8_t)this->read_word((uint32_t)0x0000, mem_prg);
 	// read device
-	flash_info.device = (uint8_t)this->read_word((uint32_t)0x0001<<1, mem_prg);
+	this->flash_info.device = (uint8_t)this->read_word((uint32_t)0x0001<<1, mem_prg);
 	// exit software ID mode
 	this->write_word((uint32_t)0x0000, 0xF000, mem_prg);
-	find_flash_size();
+	this->find_flash_size();
+}
+
+/*******************************************************************//**
+ *
+ **********************************************************************/
+uint16_t Genesis::toggle_bit(uint16_t attempts){
+
+	uint8_t check = 0;
+	uint16_t val, old_val;
+
+	// use 32bit read to start to ensure any mapper is reset to page 0
+	old_val = this->read_word((uint32_t)0x0000, mem_prg);
+	for(uint16_t i = 0; i < attempts; i++){
+		val = this->read_word((uint32_t)0x0000, mem_prg);
+		if( old_val == val ){
+			check++;
+		}else{
+			check = 0;
+		}
+		old_val = val;
+	}
+	return check;
 }
 
 /*******************************************************************//**
@@ -141,10 +174,10 @@ uint16_t Genesis::read_word(uint32_t address, e_memory_type mem_t){
 		break;
 	case mem_bram:
 		if( address >= BRAM_LOWER_BOUND and address <= BRAM_UPPER_BOUND ){
-			this->write_byte(0xA130F1, 0x03, mem_ctrl);
+			this->enable_bram_writes();
 			fsmc_addr = GEN_CE | address;
 			read = *(__IO uint16_t *)(fsmc_addr);
-			this->write_byte(0xA130F1, 0x00, mem_ctrl);
+			this->disable_bram();
 		}
 
 	default:
@@ -154,32 +187,31 @@ uint16_t Genesis::read_word(uint32_t address, e_memory_type mem_t){
 	}
 
 	// convert endianness
-	read = SWAP_BYTES(read);
+	read = BIG_END_WORD(read);
 	return read;
 }
 
 /*******************************************************************//**
  * multiple 16bit reads at 32bit address
  **********************************************************************/
-void Genesis::read_words(uint32_t address, uint16_t *buf, uint16_t size, e_memory_type mem_t){
+void Genesis::read_words(uint32_t address, uint16_t *buf, uint16_t size, e_memory_type mem_t, bool dma){
 	uint32_t fsmc_addr;
 	uint16_t read;
 
 	switch(mem_t){
 	case mem_prg:
-		fsmc_addr = GEN_CE | address;
-		for(; size != 0; size -= 2){
-			read = *(__IO uint16_t *)(fsmc_addr);
-			*(buf++) = SWAP_BYTES(read);
-			fsmc_addr += 2;
-		}
-		break;
 	default:
 		fsmc_addr = GEN_CE | address;
-		for(; size != 0; size -= 2){
-			read = *(__IO uint16_t *)(fsmc_addr);
-			*(buf++) = SWAP_BYTES(read);
-			fsmc_addr += 2;
+		if(dma){
+			HAL_DMA_Start(param.dma_channel, fsmc_addr, (uint32_t)buf, size);
+			while(HAL_DMA_GetState(param.dma_channel) != HAL_DMA_STATE_READY );
+			this->swap_bytes(buf, size);
+		}else{
+			for(; size > 0; size -= 2){
+				read = *(__IO uint16_t *)(fsmc_addr);
+				*(buf++) = BIG_END_WORD(read);
+				fsmc_addr += 2;
+			}
 		}
 		break;
 	}
@@ -195,12 +227,28 @@ void Genesis::write_word(uint32_t address, uint16_t data, e_memory_type mem_t){
 	switch(mem_t){
 	case mem_prg:
 		fsmc_addr = GEN_CE + address;
-		*(__IO uint16_t *)(fsmc_addr) = SWAP_BYTES(data);
+		*(__IO uint16_t *)(fsmc_addr) = BIG_END_WORD(data);
 		break;
 	default:
 		fsmc_addr = GEN_CE + address;
-		*(__IO uint16_t *)(fsmc_addr) = SWAP_BYTES(data);
+		*(__IO uint16_t *)(fsmc_addr) = BIG_END_WORD(data);
 		break;
 	}
+}
 
+/*******************************************************************//**
+ * single 16 bit program at 32bit address
+ **********************************************************************/
+void Genesis::program_words(uint32_t address, uint16_t *buf, uint16_t size, e_memory_type mem_t){
+
+	for(; size > 0; size -= 2){
+		this->write_word((uint32_t)0x0AAA << 1, 0xAA00, mem_t);
+		this->write_word((uint32_t)0x0555 << 1, 0x5500, mem_t);
+		this->write_word((uint32_t)0x0AAA << 1, 0xA000, mem_t);
+		// write the data
+		this->write_word(address, BIG_END_WORD(*buf), mem_t);
+		buf++;
+		// wait for completion
+		while(this->toggle_bit(2) != 2);
+	}
 }

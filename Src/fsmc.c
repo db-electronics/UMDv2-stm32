@@ -64,18 +64,18 @@ void MX_FSMC_Init(void)
   hsram1.Init.WriteFifo = FSMC_WRITE_FIFO_ENABLE;
   hsram1.Init.PageSize = FSMC_PAGE_SIZE_NONE;
   /* Timing */
-  Timing.AddressSetupTime = 15;
-  Timing.AddressHoldTime = 15;
-  Timing.DataSetupTime = 255;
-  Timing.BusTurnAroundDuration = 15;
+  Timing.AddressSetupTime = 2;
+  Timing.AddressHoldTime = 4;
+  Timing.DataSetupTime = 12;
+  Timing.BusTurnAroundDuration = 2;
   Timing.CLKDivision = 16;
   Timing.DataLatency = 17;
   Timing.AccessMode = FSMC_ACCESS_MODE_A;
   /* ExtTiming */
-  ExtTiming.AddressSetupTime = 15;
-  ExtTiming.AddressHoldTime = 15;
-  ExtTiming.DataSetupTime = 255;
-  ExtTiming.BusTurnAroundDuration = 15;
+  ExtTiming.AddressSetupTime = 2;
+  ExtTiming.AddressHoldTime = 4;
+  ExtTiming.DataSetupTime = 12;
+  ExtTiming.BusTurnAroundDuration = 2;
   ExtTiming.CLKDivision = 16;
   ExtTiming.DataLatency = 17;
   ExtTiming.AccessMode = FSMC_ACCESS_MODE_A;
@@ -106,18 +106,18 @@ void MX_FSMC_Init(void)
   hsram2.Init.WriteFifo = FSMC_WRITE_FIFO_ENABLE;
   hsram2.Init.PageSize = FSMC_PAGE_SIZE_NONE;
   /* Timing */
-  Timing.AddressSetupTime = 15;
+  Timing.AddressSetupTime = 2;
   Timing.AddressHoldTime = 15;
-  Timing.DataSetupTime = 255;
-  Timing.BusTurnAroundDuration = 15;
+  Timing.DataSetupTime = 12;
+  Timing.BusTurnAroundDuration = 2;
   Timing.CLKDivision = 16;
   Timing.DataLatency = 17;
   Timing.AccessMode = FSMC_ACCESS_MODE_A;
   /* ExtTiming */
-  ExtTiming.AddressSetupTime = 15;
+  ExtTiming.AddressSetupTime = 2;
   ExtTiming.AddressHoldTime = 15;
-  ExtTiming.DataSetupTime = 255;
-  ExtTiming.BusTurnAroundDuration = 15;
+  ExtTiming.DataSetupTime = 12;
+  ExtTiming.BusTurnAroundDuration = 2;
   ExtTiming.CLKDivision = 16;
   ExtTiming.DataLatency = 17;
   ExtTiming.AccessMode = FSMC_ACCESS_MODE_A;
@@ -148,18 +148,18 @@ void MX_FSMC_Init(void)
   hsram3.Init.WriteFifo = FSMC_WRITE_FIFO_ENABLE;
   hsram3.Init.PageSize = FSMC_PAGE_SIZE_NONE;
   /* Timing */
-  Timing.AddressSetupTime = 15;
+  Timing.AddressSetupTime = 2;
   Timing.AddressHoldTime = 15;
-  Timing.DataSetupTime = 255;
-  Timing.BusTurnAroundDuration = 15;
+  Timing.DataSetupTime = 12;
+  Timing.BusTurnAroundDuration = 2;
   Timing.CLKDivision = 16;
   Timing.DataLatency = 17;
   Timing.AccessMode = FSMC_ACCESS_MODE_A;
   /* ExtTiming */
-  ExtTiming.AddressSetupTime = 15;
+  ExtTiming.AddressSetupTime = 2;
   ExtTiming.AddressHoldTime = 15;
-  ExtTiming.DataSetupTime = 255;
-  ExtTiming.BusTurnAroundDuration = 15;
+  ExtTiming.DataSetupTime = 12;
+  ExtTiming.BusTurnAroundDuration = 2;
   ExtTiming.CLKDivision = 16;
   ExtTiming.DataLatency = 17;
   ExtTiming.AccessMode = FSMC_ACCESS_MODE_A;
@@ -190,18 +190,18 @@ void MX_FSMC_Init(void)
   hsram4.Init.WriteFifo = FSMC_WRITE_FIFO_ENABLE;
   hsram4.Init.PageSize = FSMC_PAGE_SIZE_NONE;
   /* Timing */
-  Timing.AddressSetupTime = 15;
+  Timing.AddressSetupTime = 2;
   Timing.AddressHoldTime = 15;
-  Timing.DataSetupTime = 255;
-  Timing.BusTurnAroundDuration = 15;
+  Timing.DataSetupTime = 12;
+  Timing.BusTurnAroundDuration = 2;
   Timing.CLKDivision = 16;
   Timing.DataLatency = 17;
   Timing.AccessMode = FSMC_ACCESS_MODE_A;
   /* ExtTiming */
-  ExtTiming.AddressSetupTime = 15;
+  ExtTiming.AddressSetupTime = 2;
   ExtTiming.AddressHoldTime = 15;
-  ExtTiming.DataSetupTime = 255;
-  ExtTiming.BusTurnAroundDuration = 15;
+  ExtTiming.DataSetupTime = 12;
+  ExtTiming.BusTurnAroundDuration = 12;
   ExtTiming.CLKDivision = 16;
   ExtTiming.DataLatency = 17;
   ExtTiming.AccessMode = FSMC_ACCESS_MODE_A;
