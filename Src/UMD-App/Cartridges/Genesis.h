@@ -46,16 +46,39 @@ public:
 	 * \return void
 	 **********************************************************************/
 	void init();
-
+	void erase_flash(bool wait);
 	void get_flash_id(void);
 
+	// 8 bit operations, default to CE0, the base cart implementation ignores mem_t
+	void write_byte(uint32_t address, uint8_t data, e_memory_type mem_t);
+
+	// 16 bit operations default to CE3, the base cart implementation ignores mem_t
 	uint16_t read_word(uint32_t address, e_memory_type mem_t);
 	void read_words(uint32_t address, uint16_t *buf, uint16_t size, e_memory_type mem_t);
 	void write_word(uint32_t address, uint16_t data, e_memory_type mem_t);
 
+	/*******************************************************************//**
+	 * \brief Pins
+	 **********************************************************************/
+	// nLWR on SEL1
+	#define nLWR_Pin GPIO_PIN_8
+	#define nLWR_GPIO_Port GPIOG
+	// nMRES on GP8
+	#define nMRES_Pin GPIO_PIN_6
+	#define nMRES_GPIO_Port GPIOC
+	// nM3 on GP2
+	#define nM3_Pin GPIO_PIN_4
+	#define nM3_GPIO_Port GPIOC
+
 private:
 
+	const uint32_t TIME_CE = UMD_CE0;
+	const uint32_t TIME_LOWER_BOUND = 0xA13000;
+	const uint32_t TIME_UPPER_BOUND = 0xA130FF;
+
 	const uint32_t GEN_CE = UMD_CE3;
+	const uint32_t BRAM_LOWER_BOUND = 0x200000;
+	const uint32_t BRAM_UPPER_BOUND = 0x3FFFFF;
 
 };
 

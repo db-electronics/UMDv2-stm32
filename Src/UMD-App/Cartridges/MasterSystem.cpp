@@ -34,6 +34,15 @@ MasterSystem::MasterSystem() {}
  **********************************************************************/
 void MasterSystem::init(void){
 
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+	param.bus_size = 8;
+
+	GPIO_InitStruct.Pin = GP0_Pin|GP1_Pin|GP4_Pin|GP5_Pin|GP6_Pin|GP7_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
 	set_voltage(vcart_5v);
 	set_level_translators(true);
 

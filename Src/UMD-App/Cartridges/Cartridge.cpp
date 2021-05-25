@@ -44,6 +44,9 @@ void Cartridge::init(void){
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 
 	param.id = 0;
+	param.bus_size = 8;
+
+	// turn off the voltage to the cart
 	set_voltage(vcart_off);
 	set_level_translators(false);
 
@@ -59,13 +62,32 @@ void Cartridge::init(void){
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
+	GPIO_InitStruct.Pin = SEL0_Pin|SEL1_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
+
+}
+
+/*******************************************************************//**
+ *
+ **********************************************************************/
+void Cartridge::erase_flash(bool wait){
+
+	write_byte((uint16_t)0x0AAA, (uint8_t)0xAA, mem_prg);
+	write_byte((uint16_t)0x0555, (uint8_t)0x55, mem_prg);
+	write_byte((uint16_t)0x0AAA, (uint8_t)0x80, mem_prg);
+	write_byte((uint16_t)0x0AAA, (uint8_t)0xAA, mem_prg);
+	write_byte((uint16_t)0x0555, (uint8_t)0x55, mem_prg);
+	write_byte((uint16_t)0x0AAA, (uint8_t)0x10, mem_prg);
+
 }
 
 /*******************************************************************//**
  *
  **********************************************************************/
 void Cartridge::get_flash_id(void){
-	//mx29f800 software ID detect byte mode
+	// mx29f800 software ID detect byte mode
 	// enter software ID mode
 	write_byte((uint16_t)0x0AAA, (uint8_t)0xAA, mem_prg);
 	write_byte((uint16_t)0x0555, (uint8_t)0x55, mem_prg);

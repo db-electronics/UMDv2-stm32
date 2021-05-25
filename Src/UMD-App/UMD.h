@@ -100,7 +100,7 @@ private:
 	//__IO uint8_t * ce0_8b_ptr = (uint8_t *)(CE0_ADRESS);
 
 	// main loop executes at millisecond intervals of this value
-	const uint32_t LISTEN_INTERVAL = 100;
+	const uint32_t LISTEN_INTERVAL = 10;
 	const uint32_t CMD_TIMEOUT = 100;
 	const uint32_t PAYLOAD_TIMEOUT = 200;
 

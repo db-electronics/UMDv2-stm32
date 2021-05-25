@@ -36,6 +36,7 @@ public:
 
 	struct s_param{
 		uint8_t id;
+		uint8_t bus_size;
 	}param;
 
 	struct s_flash_info {
@@ -69,10 +70,9 @@ public:
 	// NOR_HandleTypeDef hnor3;
 	// SRAM_HandleTypeDef hsram4;
 
-
 	// cartridge methods
 	virtual void init(void);
-
+	virtual void erase_flash(bool wait);
 	virtual void get_flash_id(void);
 	void find_flash_size(void);
 

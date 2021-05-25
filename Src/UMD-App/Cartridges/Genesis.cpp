@@ -33,28 +33,97 @@ Genesis::Genesis() {}
  *
  **********************************************************************/
 void Genesis::init(void){
+
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+	param.bus_size = 16;
+
+	// set nMRES to output and drive low for now to reset cart
+	GPIO_InitStruct.Pin = nMRES_Pin|nM3_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+	HAL_GPIO_WritePin(nM3_GPIO_Port, nM3_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(nMRES_GPIO_Port, nLWR_Pin, GPIO_PIN_RESET);
+
+	// set nLWR to output and drive high
+	GPIO_InitStruct.Pin = nLWR_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(nLWR_GPIO_Port, &GPIO_InitStruct);
+	HAL_GPIO_WritePin(nLWR_GPIO_Port, nLWR_Pin, GPIO_PIN_SET);
+
+	GPIO_InitStruct.Pin = GP0_Pin|GP1_Pin|GP4_Pin|GP5_Pin|GP6_Pin|GP7_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
 	set_voltage(vcart_5v);
 	set_level_translators(true);
+
+	HAL_GPIO_WritePin(nMRES_GPIO_Port, nLWR_Pin, GPIO_PIN_SET);
+}
+
+/*******************************************************************//**
+ *
+ **********************************************************************/
+void Genesis::erase_flash(bool wait){
+
+	this->write_word((uint32_t)0x0AAA << 1, 0xAA00, mem_prg);
+	this->write_word((uint32_t)0x0555 << 1, 0x5500, mem_prg);
+	this->write_word((uint32_t)0x0AAA << 1, 0x8000, mem_prg);
+	this->write_word((uint32_t)0x0AAA << 1, 0xAA00, mem_prg);
+	this->write_word((uint32_t)0x0555 << 1, 0x5500, mem_prg);
+	this->write_word((uint32_t)0x0AAA << 1, 0x1000, mem_prg);
+
 }
 
 /*******************************************************************//**
  *
  **********************************************************************/
 void Genesis::get_flash_id(void){
-	//mx29f800 software ID detect word mode
+	// mx29f800 software ID detect word mode
 	// enter software ID mode
-	write_word((uint32_t)0x0AAA<<1, 0x00AA, mem_prg);
-	write_word((uint32_t)0x0555<<1, 0x0055, mem_prg);
-	write_word((uint32_t)0x0AAA<<1, 0x0090, mem_prg);
+	// genesis writes in big endian mode
+	this->write_word((uint32_t)0x0AAA << 1, 0xAA00, mem_prg);
+	this->write_word((uint32_t)0x0555 << 1, 0x5500, mem_prg);
+	this->write_word((uint32_t)0x0AAA << 1, 0x9000, mem_prg);
 	// read manufacturer
-	flash_info.manufacturer = (uint8_t)read_word((uint32_t)0x0000, mem_prg);
+	flash_info.manufacturer = (uint8_t)this->read_word((uint32_t)0x0000, mem_prg);
 	// read device
-	flash_info.device = (uint8_t)read_word((uint32_t)0x0001<<1, mem_prg);
+	flash_info.device = (uint8_t)this->read_word((uint32_t)0x0001<<1, mem_prg);
 	// exit software ID mode
-	write_word((uint32_t)0x0000, 0x00F0, mem_prg);
+	this->write_word((uint32_t)0x0000, 0xF000, mem_prg);
 	find_flash_size();
 }
 
+/*******************************************************************//**
+* 8 BIT OPERATIONS
+************************************************************************
+ * single 8 bit write at 32bit address
+ **********************************************************************/
+void Genesis::write_byte(uint32_t address, uint8_t data, e_memory_type mem_t){
+
+	uint32_t fsmc_addr;
+
+	switch(mem_t){
+	case mem_prg:
+		break;
+	case mem_ctrl:
+		if( address >= TIME_LOWER_BOUND and address <= TIME_UPPER_BOUND ){
+			// ensure byte writes are always on odd addresses
+			fsmc_addr = TIME_CE | address | 1;
+			HAL_GPIO_WritePin(nLWR_GPIO_Port, nLWR_Pin, GPIO_PIN_RESET);
+			*(__IO uint8_t *)(fsmc_addr) = data;
+			HAL_GPIO_WritePin(nLWR_GPIO_Port, nLWR_Pin, GPIO_PIN_SET);
+		}
+		break;
+	default:
+		break;
+	}
+}
 
 /*******************************************************************//**
 * 16 BIT OPERATIONS
@@ -70,12 +139,21 @@ uint16_t Genesis::read_word(uint32_t address, e_memory_type mem_t){
 		fsmc_addr = GEN_CE + address;
 		read = *(__IO uint16_t *)(fsmc_addr);
 		break;
+	case mem_bram:
+		if( address >= BRAM_LOWER_BOUND and address <= BRAM_UPPER_BOUND ){
+			this->write_byte(0xA130F1, 0x03, mem_ctrl);
+			fsmc_addr = GEN_CE | address;
+			read = *(__IO uint16_t *)(fsmc_addr);
+			this->write_byte(0xA130F1, 0x00, mem_ctrl);
+		}
+
 	default:
-		fsmc_addr = GEN_CE + address;
+		fsmc_addr = GEN_CE | address;
 		read = *(__IO uint16_t *)(fsmc_addr);
 		break;
 	}
 
+	// convert endianness
 	read = SWAP_BYTES(read);
 	return read;
 }
@@ -89,7 +167,7 @@ void Genesis::read_words(uint32_t address, uint16_t *buf, uint16_t size, e_memor
 
 	switch(mem_t){
 	case mem_prg:
-		fsmc_addr = GEN_CE + address;
+		fsmc_addr = GEN_CE | address;
 		for(; size != 0; size -= 2){
 			read = *(__IO uint16_t *)(fsmc_addr);
 			*(buf++) = SWAP_BYTES(read);
@@ -97,7 +175,7 @@ void Genesis::read_words(uint32_t address, uint16_t *buf, uint16_t size, e_memor
 		}
 		break;
 	default:
-		fsmc_addr = GEN_CE + address;
+		fsmc_addr = GEN_CE | address;
 		for(; size != 0; size -= 2){
 			read = *(__IO uint16_t *)(fsmc_addr);
 			*(buf++) = SWAP_BYTES(read);
