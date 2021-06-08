@@ -37,7 +37,7 @@ public:
 		union{
 			struct{
 				uint16_t	ack;
-				uint16_t	payload_size;
+				uint16_t	packet_size;
 			};
 			uint8_t		bytes[USB_BUFFER_SIZE];     	///< byte access within dataBuffer
 			uint16_t    words[USB_BUFFER_SIZE/2];   	///< word access within dataBuffer

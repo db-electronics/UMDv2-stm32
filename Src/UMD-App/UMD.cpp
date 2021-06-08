@@ -134,18 +134,24 @@ void UMD::run(void){
 void UMD::listen(void){
 
 	uint32_t crc_calc;
+	WORD_T crc_pc;
+	uint16_t data_size;
 
 	// first 2 bytes are command, next 2 bytes are the size of this packet
 	if( usb.available(CMD_TIMEOUT, CMD_HEADER_SIZE) ){
 
-		// retrieve the command header 8 bytes
+		// retrieve the command header 4 bytes
 		usb.get(cmd.header.bytes, CMD_HEADER_SIZE);
 
-		crc_calc = crc32mpeg2_calc(&cmd.header.sof, 4, true);
+		// reset the crc calc and add the start of packet
+		crc_calc = crc32mpeg2_calc(&cmd.header.sop, 4, true);
+
+		// get the size of the data in this packet, substract 8 (4 for SOP and 4 for CRC)
+		data_size = cmd.header.size - 8;
 
 		// wait for rest of data if payload is not 0
-		if( cmd.header.payload_size ){
-			if( usb.available(PAYLOAD_TIMEOUT, cmd.header.payload_size) != cmd.header.payload_size ){
+		if( data_size ){
+			if( usb.available(PAYLOAD_TIMEOUT, data_size) != data_size ){
 				usb.put_header(CMDREPLY.PAYLOAD_TIMEOUT);
 				usb.transmit();
 				// reset usb rx buffer
@@ -153,17 +159,15 @@ void UMD::listen(void){
 				return;
 			}
 			// command with payload, accumulate over payload
-			usb.get(ubuf.u8, cmd.header.payload_size);
-			crc_calc = crc32mpeg2_calc(ubuf.u32, cmd.header.payload_size, false);
+			usb.get(ubuf.u8, data_size);
+			crc_calc = crc32mpeg2_calc(ubuf.u32, data_size, false);
 		}
 
-		// make my life easier during debugging
-#ifdef IGNORE_CRC
-		crc_calc = cmd.header.crc;
-#endif
+		// CRC is the final uint32_t
+		usb.get(crc_pc.u8, sizeof(WORD_T));
 
 		// compare with received CRC
-		if( crc_calc != cmd.header.crc ){
+		if( crc_calc != crc_pc.u32 ){
 			// reply with CRC error
 			usb.put_header(CMDREPLY.CRC_ERROR);
 		}else{

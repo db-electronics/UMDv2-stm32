@@ -22,6 +22,7 @@
 
 #include "USB.h"
 #include "usbd_cdc_if.h"
+#include "crc.h"
 
 /*******************************************************************//**
  *
@@ -55,12 +56,31 @@ bool USB::is_full(void){
  **********************************************************************/
 void USB::transmit(void){
 
+	uint32_t crc, swapped;
+
 	if( usbbuf.size != 0){
 		if( usbbuf.size > USB_BUFFER_SIZE ){
 			usbbuf.size = USB_BUFFER_SIZE;
 		}
 
-		usbbuf.data.payload_size = usbbuf.size - 4;		// payload size doesn't include the header
+		// add size of trailing trailing CRC before calculation
+		usbbuf.data.packet_size += 4;
+		// swapping the endianness of each u32 gets the same results as python's:
+		// from crccheck.crc import Crc32Mpeg2
+		// I figure the STM32 can reverse endianness much faster than Python can so let's do it here
+		__HAL_CRC_DR_RESET(&hcrc);
+
+
+		for( uint16_t i = 0 ; i<(usbbuf.size>>2) ; i++){
+			swapped = ( *(data + i) & 0x000000FF ) << 24;
+			swapped |= ( *(data + i) & 0x0000FF00 ) << 8;
+			swapped |= ( *(data + i) & 0x00FF0000 ) >> 8;
+			swapped |= ( *(data + i) & 0xFF000000 ) >> 24;
+			crc = HAL_CRC_Accumulate(&hcrc, &swapped, 1);
+		}
+
+		// add size of crc to output
+		usbbuf.size += 4;
 
 		CDC_Transmit_FS(usbbuf.data.bytes, usbbuf.size);
 		usbbuf.size = 0;
@@ -203,14 +223,15 @@ uint16_t USB::put(uint16_t *data, uint16_t len){
 /*******************************************************************//**
  *
  **********************************************************************/
-uint16_t USB::get(uint8_t* data, uint16_t size){
-	return CDC_ReadBuffer(data, size);
+uint8_t USB::get(void){
+	return CDC_ReadBuffer_Single();
 }
+
 
 /*******************************************************************//**
  *
  **********************************************************************/
-uint8_t USB::get(void){
-	return CDC_ReadBuffer_Single();
+uint16_t USB::get(uint8_t* data, uint16_t size){
+	return CDC_ReadBuffer(data, size);
 }
 

@@ -105,7 +105,7 @@ private:
 	const uint32_t PAYLOAD_TIMEOUT = 200;
 
 	// listen for commands, data buffers for small transfer
-	const uint16_t CMD_HEADER_SIZE = 8;
+	const uint16_t CMD_HEADER_SIZE = 4;
 	/*******************************************************************//**
      * \brief cmd
      * cmd union to properly receive commands from the PC
@@ -113,18 +113,22 @@ private:
 	struct{
 		union{
 			struct{
-				uint32_t sof;
-				uint32_t crc;
+				uint32_t sop;
 			};
 			struct{
 				uint16_t cmd;
-				uint16_t payload_size;
-				uint16_t crc_lo;
-				uint16_t crc_hi;
+				uint16_t size;
 			};
-			uint8_t bytes[8];
+			uint8_t bytes[4];
 		}header;
 	}cmd;
+
+	// convenient type to receive different sizes of data
+	union WORD_T{
+		uint32_t u32;
+		uint16_t u16[2];
+		uint8_t u8[4];
+	};
 
 	// gp data buffer
 	union UMD_BUF{
