@@ -66,7 +66,7 @@ public:
 	uint16_t peak(uint8_t* data, uint16_t size);
 
 private:
-
+	bool usbbuf_enough_room(uint16_t size);
 
 };
 

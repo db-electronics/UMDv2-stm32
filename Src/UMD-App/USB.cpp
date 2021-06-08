@@ -54,6 +54,19 @@ bool USB::is_full(void){
 /*******************************************************************//**
  *
  **********************************************************************/
+bool USB::usbbuf_enough_room(uint16_t size){
+
+	// check if size + 4 (crc) fits in the buffer
+	if( USB_BUFFER_SIZE - (usbbuf.size + size + 4) >= 0 ){
+		return true;
+	}else{
+		return false;
+	}
+}
+
+/*******************************************************************//**
+ *
+ **********************************************************************/
 void USB::transmit(void){
 
 	uint32_t crc, swapped;
@@ -63,7 +76,7 @@ void USB::transmit(void){
 			usbbuf.size = USB_BUFFER_SIZE;
 		}
 
-		// add size of trailing trailing CRC before calculation
+		// add size of trailing CRC before calculation
 		usbbuf.data.packet_size += 4;
 		// swapping the endianness of each u32 gets the same results as python's:
 		// from crccheck.crc import Crc32Mpeg2
@@ -71,16 +84,16 @@ void USB::transmit(void){
 		__HAL_CRC_DR_RESET(&hcrc);
 
 
-		for( uint16_t i = 0 ; i<(usbbuf.size>>2) ; i++){
-			swapped = ( *(data + i) & 0x000000FF ) << 24;
-			swapped |= ( *(data + i) & 0x0000FF00 ) << 8;
-			swapped |= ( *(data + i) & 0x00FF0000 ) >> 8;
-			swapped |= ( *(data + i) & 0xFF000000 ) >> 24;
+		for( uint16_t i = 0 ; i < usbbuf.size ; i += 4){
+			swapped = usbbuf.data.bytes[i] << 24;
+			swapped |= usbbuf.data.bytes[i + 1] << 16;
+			swapped |= usbbuf.data.bytes[i + 2] << 8;
+			swapped |= usbbuf.data.bytes[i + 3];
 			crc = HAL_CRC_Accumulate(&hcrc, &swapped, 1);
 		}
 
-		// add size of crc to output
-		usbbuf.size += 4;
+		// add crc and size of crc to output
+		put(crc);
 
 		CDC_Transmit_FS(usbbuf.data.bytes, usbbuf.size);
 		usbbuf.size = 0;
@@ -105,6 +118,7 @@ uint16_t USB::available(uint32_t timeout_ms, uint16_t bytes_required){
  *
  **********************************************************************/
 void USB::put_header(uint16_t reply){
+	// reset size to 4
 	usbbuf.size = 4;
 	usbbuf.data.ack = reply;
 }
@@ -115,10 +129,9 @@ void USB::put_header(uint16_t reply){
 uint16_t USB::put(std::string str){
 
 	uint16_t str_len = str.length();
-	uint16_t room_left = USB_BUFFER_SIZE - usbbuf.size;
 
 	// is there enough room on the buffer for the string?
-	if( str_len > room_left ){
+	if( usbbuf_enough_room(str_len) ){
 		return 0;
 	}else{
 		const char *strp = str.c_str();
@@ -134,8 +147,8 @@ uint16_t USB::put(std::string str){
  **********************************************************************/
 uint16_t USB::put(uint8_t byte){
 
-	// is the buffer full?
-	if( is_full() ){
+	// wil
+	if( usbbuf_enough_room(sizeof(byte)) ){
 		return 0;
 	}else{
 		usbbuf.data.bytes[usbbuf.size++] = byte;
@@ -149,7 +162,7 @@ uint16_t USB::put(uint8_t byte){
 uint16_t USB::put(uint16_t word){
 
 	// is the buffer full?
-	if( (USB_BUFFER_SIZE - usbbuf.size) < 2 ){
+	if( usbbuf_enough_room(sizeof(word)) ){
 		return 0;
 	}else{
 		// put byte a time in case we're not at an even boundary
@@ -165,7 +178,7 @@ uint16_t USB::put(uint16_t word){
 uint16_t USB::put(uint32_t lword){
 
 	// is the buffer full?
-	if( (USB_BUFFER_SIZE - usbbuf.size) < 4 ){
+	if( usbbuf_enough_room(sizeof(lword)) ){
 		return 0;
 	}else{
 		// put byte a time in case we're not at an even boundary
