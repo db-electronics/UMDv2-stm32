@@ -120,7 +120,7 @@ uint16_t USB::available(uint32_t timeout_ms, uint16_t bytes_required){
 void USB::put_header(uint16_t reply){
 	// reset size to 4
 	usbbuf.size = 4;
-	usbbuf.data.ack = reply;
+	usbbuf.data.ack = reply + 0x4000;
 }
 
 /*******************************************************************//**

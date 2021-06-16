@@ -104,6 +104,7 @@ void UMD::run(void){
 	usb.flush();
 
 	while(1){
+
 		// super loop, listen for commands
 		listen();
 
@@ -147,7 +148,7 @@ void UMD::listen(void){
 		crc_calc = crc32mpeg2_calc(&cmd.header.sop, 4, true);
 
 		// get the size of the data in this packet, substract 8 (4 for SOP and 4 for CRC)
-		data_size = cmd.header.size - 8;
+		data_size = cmd.header.size - (CMD_HEADER_SIZE + sizeof(crc_pc));
 
 		// wait for rest of data if payload is not 0
 		if( data_size ){
@@ -164,7 +165,7 @@ void UMD::listen(void){
 		}
 
 		// CRC is the final uint32_t
-		usb.get(crc_pc.u8, sizeof(WORD_T));
+		usb.get(crc_pc.u8, sizeof(crc_pc));
 
 		// compare with received CRC
 		if( crc_calc != crc_pc.u32 ){
