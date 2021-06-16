@@ -96,10 +96,6 @@ void UMD::run(void){
 	// would be nice to have a file on the SD card that could act as a script
 	// to automate a UMD task like repetitive burning
 
-	usb.put_header(CMDREPLY.CRC_OK);
-	usb.put(std::string("UMD v2.0.0.0"));
-	usb.transmit();
-
 	// some debugging sessions start with alot of junk usb packets, flush them out
 	usb.flush();
 
@@ -175,8 +171,8 @@ void UMD::listen(void){
 
 			// check bounds for command
 			if( cmd.header.cmd < cmd_table.size() ){
-				// reply acknowledge with the command's word
-				usb.put_header(cmd.header.cmd);
+				// reply acknowledge with the command's word + bit14
+				usb.put_header(cmd.header.cmd + CMDREPLY.CMD_ACK);
 				// get command from table
 				exec_command = cmd_table[cmd.header.cmd];
 				// execute the command

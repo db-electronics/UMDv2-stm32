@@ -87,13 +87,13 @@ private:
 		uint16_t buffer[8];
 	}adc;
 
-	// CMD REPLIES
+	// CMD REPLIES, bit15 set = error
 	const struct{
 		uint16_t NO_ACK = 0xFFFF;
 		uint16_t CMD_FAILED = 0xFFFE;
 		uint16_t PAYLOAD_TIMEOUT = 0xFFFD;
 		uint16_t CRC_ERROR = 0xFFFC;
-		uint16_t CRC_OK = 0xFFFB;
+		uint16_t CMD_ACK = 0x4000;
 	}CMDREPLY;
 
 	// FMSC memory pointers

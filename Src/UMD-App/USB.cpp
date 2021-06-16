@@ -71,13 +71,15 @@ void USB::transmit(void){
 
 	uint32_t crc, swapped;
 
+	// don't transmit if there's nothing to transmit
 	if( usbbuf.size != 0){
 		if( usbbuf.size > USB_BUFFER_SIZE ){
 			usbbuf.size = USB_BUFFER_SIZE;
 		}
 
-		// add size of trailing CRC before calculation
+		// add size of trailing CRC before calculation, because this number is part of the crc32 calculation
 		usbbuf.data.packet_size += 4;
+
 		// swapping the endianness of each u32 gets the same results as python's:
 		// from crccheck.crc import Crc32Mpeg2
 		// I figure the STM32 can reverse endianness much faster than Python can so let's do it here
@@ -92,10 +94,13 @@ void USB::transmit(void){
 			crc = HAL_CRC_Accumulate(&hcrc, &swapped, 1);
 		}
 
-		// add crc and size of crc to output
+		// add crc as the trailing uint32_t to the buffer
 		put(crc);
 
+		// transmit
 		CDC_Transmit_FS(usbbuf.data.bytes, usbbuf.size);
+
+		// reset the buffer
 		usbbuf.size = 0;
 	}
 }
@@ -120,7 +125,8 @@ uint16_t USB::available(uint32_t timeout_ms, uint16_t bytes_required){
 void USB::put_header(uint16_t reply){
 	// reset size to 4
 	usbbuf.size = 4;
-	usbbuf.data.ack = reply + 0x4000;
+	// acknowledge command
+	usbbuf.data.ack = reply;
 }
 
 /*******************************************************************//**
@@ -129,6 +135,11 @@ void USB::put_header(uint16_t reply){
 uint16_t USB::put(std::string str){
 
 	uint16_t str_len = str.length();
+
+	// only proceed if we're at an lword boundary
+	if( usbbuf.size % 4 != 0 ){
+		return -1;
+	}
 
 	// is there enough room on the buffer for the string?
 	if( usbbuf_enough_room(str_len) ){
@@ -139,43 +150,70 @@ uint16_t USB::put(std::string str){
 			usbbuf.data.bytes[usbbuf.size++] = *(strp++);
 		}
 	}
+
+	// pad to nearest uint32_t
+	while(str_len % 4 != 0){
+		usbbuf.data.bytes[usbbuf.size++] = 0;
+		str_len++;
+	}
+
 	return str_len;
 }
 
 /*******************************************************************//**
- *
+ * put a byte in the buffer and pad to uin32t_t
  **********************************************************************/
 uint16_t USB::put(uint8_t byte){
 
-	// wil
-	if( usbbuf_enough_room(sizeof(byte)) ){
+	// only proceed if we're at an lword boundary
+	if( usbbuf.size % 4 != 0 ){
+		return -1;
+	}
+
+	// is the buffer full
+	if( usbbuf_enough_room(sizeof(uint32_t)) ){
 		return 0;
 	}else{
 		usbbuf.data.bytes[usbbuf.size++] = byte;
+		usbbuf.data.bytes[usbbuf.size++] = 0;
+		usbbuf.data.bytes[usbbuf.size++] = 0;
+		usbbuf.data.bytes[usbbuf.size++] = 0;
 	}
-	return 1;
+	return 4;
 }
 
 /*******************************************************************//**
- *
+ * put a word in the buffer and pad to uin32t_t
  **********************************************************************/
 uint16_t USB::put(uint16_t word){
 
+	// only proceed if we're at an lword boundary
+	if( usbbuf.size % 4 != 0 ){
+		return -1;
+	}
+
 	// is the buffer full?
-	if( usbbuf_enough_room(sizeof(word)) ){
+	if( usbbuf_enough_room(sizeof(uint32_t)) ){
 		return 0;
 	}else{
 		// put byte a time in case we're not at an even boundary
 		usbbuf.data.bytes[usbbuf.size++] = (uint8_t)word;
 		usbbuf.data.bytes[usbbuf.size++] = (uint8_t)(word>>8);
+		usbbuf.data.bytes[usbbuf.size++] = 0;
+		usbbuf.data.bytes[usbbuf.size++] = 0;
 	}
-	return 2;
+	return 4;
 }
 
 /*******************************************************************//**
  *
  **********************************************************************/
 uint16_t USB::put(uint32_t lword){
+
+	// only proceed if we're at an lword boundary
+	if( usbbuf.size % 4 != 0 ){
+		return -1;
+	}
 
 	// is the buffer full?
 	if( usbbuf_enough_room(sizeof(lword)) ){
@@ -197,7 +235,12 @@ uint16_t USB::put(uint8_t *data, uint16_t len){
 
 	uint16_t room_left = USB_BUFFER_SIZE - usbbuf.size;
 
-	// is there enough room on the buffer for the string?
+	// only proceed if we're at an lword boundary
+	if( usbbuf.size % 4 != 0 ){
+		return -1;
+	}
+
+	// is there enough room on the buffer for the data
 	if( len > room_left ){
 		return 0;
 	}else{
@@ -205,6 +248,13 @@ uint16_t USB::put(uint8_t *data, uint16_t len){
 			usbbuf.data.bytes[usbbuf.size++] = *(data++);
 		}
 	}
+
+	// pad to nearest uint32_t
+	while(len % 4 != 0){
+		usbbuf.data.bytes[usbbuf.size++] = 0;
+		len++;
+	}
+
 	return len;
 }
 
@@ -215,8 +265,8 @@ uint16_t USB::put(uint16_t *data, uint16_t len){
 
 	uint16_t room_left = USB_BUFFER_SIZE - usbbuf.size;
 
-	// only proceed if we're at a word boundary
-	if( usbbuf.size % 2 != 0 ){
+	// only proceed if we're at an lword boundary
+	if( usbbuf.size % 4 != 0 ){
 		return -1;
 	}
 
@@ -230,6 +280,13 @@ uint16_t USB::put(uint16_t *data, uint16_t len){
 			usbbuf.data.bytes[usbbuf.size++] = (uint8_t)((*(data++)>>8));
 		}
 	}
+
+	// pad to nearest uint32_t
+	while(len % 4 != 0){
+		usbbuf.data.bytes[usbbuf.size++] = 0;
+		len++;
+	}
+
 	return len;
 }
 
